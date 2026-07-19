@@ -12,10 +12,14 @@ import notificationRoutes from './modules/notifications/notification.routes.js';
 const app = express();
 
 app.use(helmet());
-const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5173'].filter(Boolean);
+const allowedOrigins = [
+  ...(process.env.CLIENT_URL || '').split(',').map((origin) => origin.trim()).filter(Boolean),
+  'http://localhost:5173',
+  'https://job-lens-theta.vercel.app',
+];
 
 app.use(cors({
-  origin: [process.env.CLIENT_URL, 'http://localhost:5173'],
+  origin: allowedOrigins,
   credentials: true,
 }));
 app.use(express.json());
