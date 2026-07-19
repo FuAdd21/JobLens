@@ -75,13 +75,16 @@ export const computeMatchesForUser = async (userId, limit = 30) => {
     });
   }
 
-  // pgvector: <=> is cosine distance (0 = identical, 2 = opposite). similarity = 1 - distance.
   const { rows: candidates } = await query(
-    `SELECT id, title, skills, source_url, location, deadline_at,
-            1 - (embedding <=> (SELECT embedding FROM profiles WHERE user_id = $1)) AS similarity
-     FROM jobs
-     WHERE embedding IS NOT NULL AND status = 'ACTIVE'
-     ORDER BY embedding <=> (SELECT embedding FROM profiles WHERE user_id = $1)
+    `SELECT j.id, j.title, j.skills, j.source_url, j.location, j.deadline_at, j.posted_at,
+            1 - (j.embedding <=> (SELECT embedding FROM profiles WHERE user_id = $1)) AS similarity
+     FROM jobs j
+     JOIN job_sources js ON js.id = j.source_id
+     WHERE j.embedding IS NOT NULL
+       AND j.status = 'ACTIVE'
+       AND j.posted_at >= now() - interval '45 days'
+       AND js.reliability_score >= 20
+     ORDER BY j.embedding <=> (SELECT embedding FROM profiles WHERE user_id = $1)
      LIMIT $2`,
     [userId, limit]
   );
@@ -89,7 +92,12 @@ export const computeMatchesForUser = async (userId, limit = 30) => {
   const results = [];
   for (const job of candidates) {
     const skillScore = await computeSkillOverlap(userId, job.skills);
-    const finalScore = SEMANTIC_WEIGHT * job.similarity + SKILL_WEIGHT * skillScore;
+
+    // Small recency boost — up to +5% for something posted today, tapering to 0 at 45 days
+    const ageDays = (Date.now() - new Date(job.posted_at).getTime()) / (1000 * 60 * 60 * 24);
+    const recencyBoost = Math.max(0, (1 - ageDays / 45)) * 0.05;
+
+    const finalScore = SEMANTIC_WEIGHT * job.similarity + SKILL_WEIGHT * skillScore + recencyBoost;
 
     await query(
       `INSERT INTO matches (user_id, job_id, similarity_score, skill_overlap_score, final_score)

@@ -1,19 +1,19 @@
-import { query } from '../../database/pool.js';
-import { parseJobPosting } from './jobParser.js';
-import { computeDedupHash, findDuplicateJob } from './dedup.js';
+import { query } from "../../database/pool.js";
+import { parseJobPosting } from "./jobParser.js";
+import { computeDedupHash, findDuplicateJob } from "./dedup.js";
 
 export const getActiveJobSources = async (type = null) => {
   const { rows } = await query(
-    `SELECT * FROM job_sources WHERE active = TRUE ${type ? 'AND type = $1' : ''} ORDER BY reliability_score DESC`,
-    type ? [type] : []
+    `SELECT * FROM job_sources WHERE active = TRUE ${type ? "AND type = $1" : ""} ORDER BY reliability_score DESC`,
+    type ? [type] : [],
   );
   return rows;
 };
 
 export const getOrCreateJobSource = async (name, type, identifier) => {
   const { rows: existing } = await query(
-    'SELECT * FROM job_sources WHERE type = $1 AND identifier = $2',
-    [type, identifier]
+    "SELECT * FROM job_sources WHERE type = $1 AND identifier = $2",
+    [type, identifier],
   );
   if (existing[0]) return existing[0];
 
@@ -21,7 +21,7 @@ export const getOrCreateJobSource = async (name, type, identifier) => {
     `INSERT INTO job_sources (name, type, identifier)
      VALUES ($1, $2, $3)
      RETURNING *`,
-    [name, type, identifier]
+    [name, type, identifier],
   );
   return rows[0];
 };
@@ -29,15 +29,20 @@ export const getOrCreateJobSource = async (name, type, identifier) => {
 const getOrCreateOrganization = async (name) => {
   if (!name) return null;
 
-  const existing = await query('SELECT * FROM organizations WHERE name = $1', [name]);
+  const existing = await query("SELECT * FROM organizations WHERE name = $1", [
+    name,
+  ]);
   if (existing.rows[0]) return existing.rows[0].id;
 
-  const { rows } = await query('INSERT INTO organizations (name) VALUES ($1) RETURNING id', [name]);
+  const { rows } = await query(
+    "INSERT INTO organizations (name) VALUES ($1) RETURNING id",
+    [name],
+  );
   return rows[0].id;
 };
 
 const getKnownSkillNames = async () => {
-  const { rows } = await query('SELECT name FROM skills');
+  const { rows } = await query("SELECT name FROM skills");
   return rows.map((row) => row.name);
 };
 
@@ -55,14 +60,20 @@ export const ingestRawPosts = async (posts, sourceId) => {
       continue;
     }
 
-    const dedupHash = computeDedupHash(parsed.title, parsed.organizationName, parsed.location);
+    const dedupHash = computeDedupHash(
+      parsed.title,
+      parsed.organizationName,
+      parsed.location,
+    );
     const duplicate = await findDuplicateJob(dedupHash);
     if (duplicate) {
       duplicates += 1;
       continue;
     }
 
-    const organizationId = await getOrCreateOrganization(parsed.organizationName);
+    const organizationId = await getOrCreateOrganization(
+      parsed.organizationName,
+    );
 
     await query(
       `INSERT INTO jobs (
@@ -85,12 +96,15 @@ export const ingestRawPosts = async (posts, sourceId) => {
         parsed.deadlineAt,
         post.postedAt,
         dedupHash,
-      ]
+      ],
     );
     created += 1;
   }
 
-  await query('UPDATE job_sources SET last_successful_sync = now() WHERE id = $1', [sourceId]);
+  await query(
+    "UPDATE job_sources SET last_successful_sync = now() WHERE id = $1",
+    [sourceId],
+  );
 
   return { created, duplicates, skipped, total: posts.length };
 };
@@ -98,39 +112,49 @@ export const ingestRawPosts = async (posts, sourceId) => {
 export const listJobs = async ({ page = 1, limit = 20, keyword, location }) => {
   const safePage = Math.max(Number(page) || 1, 1);
   const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
-  const conditions = ["status = 'ACTIVE'"];
+  const conditions = [
+    "j.status = 'ACTIVE'",
+    "j.posted_at >= now() - interval '45 days'", // never show ancient posts even if not yet marked expired
+    "js.reliability_score >= 20", // filters out low-quality/spammy sources
+  ];
   const values = [];
   let i = 1;
 
   if (keyword) {
-    conditions.push(`(title ILIKE $${i} OR description ILIKE $${i})`);
+    conditions.push(`(j.title ILIKE $${i} OR j.description ILIKE $${i})`);
     values.push(`%${keyword}%`);
     i += 1;
   }
 
   if (location) {
-    conditions.push(`location ILIKE $${i}`);
+    conditions.push(`j.location ILIKE $${i}`);
     values.push(`%${location}%`);
     i += 1;
   }
 
-  const whereClause = conditions.join(' AND ');
+  const whereClause = conditions.join(" AND ");
   const offset = (safePage - 1) * safeLimit;
 
   const { rows } = await query(
-    `SELECT j.*, o.name AS organization_name
+    `SELECT j.*, o.name as organization_name
      FROM jobs j
      LEFT JOIN organizations o ON o.id = j.organization_id
+     JOIN job_sources js ON js.id = j.source_id
      WHERE ${whereClause}
-     ORDER BY j.posted_at DESC NULLS LAST, j.created_at DESC
+     ORDER BY j.posted_at DESC
      LIMIT $${i} OFFSET $${i + 1}`,
-    [...values, safeLimit, offset]
+    [...values, safeLimit, offset],
   );
 
   const { rows: countRows } = await query(
-    `SELECT COUNT(*) FROM jobs j WHERE ${whereClause}`,
-    values
+    `SELECT COUNT(*) FROM jobs j JOIN job_sources js ON js.id = j.source_id WHERE ${whereClause}`,
+    values,
   );
 
-  return { jobs: rows, total: Number(countRows[0].count), page: safePage, limit: safeLimit };
+  return {
+    jobs: rows,
+    total: Number(countRows[0].count),
+    page: safePage,
+    limit: safeLimit,
+  };
 };

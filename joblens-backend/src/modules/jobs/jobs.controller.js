@@ -92,3 +92,16 @@ export const getJobSources = async (req, res, next) => {
     next(err);
   }
 };
+
+export const toggleSource = async (req, res, next) => {
+  try {
+    const { query } = await import("../../database/pool.js");
+    const { rows } = await query(
+      "UPDATE job_sources SET active = NOT active WHERE id = $1 RETURNING *",
+      [req.params.id]
+    );
+    return res.json({ success: true, data: rows[0] });
+  } catch (err) {
+    next(err);
+  }
+};

@@ -1,22 +1,24 @@
 import { getTelegramClient } from "./telegramClient.js";
 
+const MAX_POST_AGE_DAYS = 30; // don't bother ingesting anything older than this
+
 export const collectFromChannel = async (channelUsername, limit = 50) => {
-  console.log("[telegram] connecting...");
   const client = await getTelegramClient();
-  console.log("[telegram] connected. resolving entity:", channelUsername);
-
   const entity = await client.getEntity(channelUsername);
-  console.log("[telegram] entity resolved, fetching messages...");
-
   const messages = await client.getMessages(entity, { limit });
-  console.log("[telegram] got", messages.length, "messages");
+
+  const cutoff = Date.now() - MAX_POST_AGE_DAYS * 24 * 60 * 60 * 1000;
 
   return messages
-    .filter((message) => message.message && message.message.trim().length > 20)
-    .map((message) => ({
-      rawContent: message.message,
-      postedAt: message.date ? new Date(message.date * 1000) : new Date(),
-      sourceMessageId: message.id,
-      sourceUrl: `https://t.me/${channelUsername}/${message.id}`,
+    .filter((m) => m.message && m.message.trim().length > 20)
+    .filter((m) => {
+      const postedAt = m.date ? m.date * 1000 : Date.now();
+      return postedAt >= cutoff; // hard cutoff — old posts never even get parsed
+    })
+    .map((m) => ({
+      rawContent: m.message,
+      postedAt: m.date ? new Date(m.date * 1000) : new Date(),
+      sourceMessageId: m.id,
+      sourceUrl: `https://t.me/${channelUsername}/${m.id}`,
     }));
 };

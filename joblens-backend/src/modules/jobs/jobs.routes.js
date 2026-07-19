@@ -6,6 +6,12 @@ const router = Router();
 
 router.get("/", requireAuth, jobsController.getJobs);
 router.get("/sources", requireAuth, requireAdmin, jobsController.getJobSources);
+router.patch(
+  "/sources/:id/toggle",
+  requireAuth,
+  requireAdmin,
+  jobsController.toggleSource,
+);
 router.post(
   "/sync/telegram",
   requireAuth,
