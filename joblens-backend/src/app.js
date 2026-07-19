@@ -7,6 +7,7 @@ import profileRoutes from './modules/profile/profile.routes.js';
 import jobsRoutes from './modules/jobs/jobs.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import matchingRoutes from './modules/matching/matching.routes.js';
+import notificationRoutes from './modules/notifications/notification.routes.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/jobs', jobsRoutes);
 app.use('/api/v1/matches', matchingRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 app.use(errorHandler);
 

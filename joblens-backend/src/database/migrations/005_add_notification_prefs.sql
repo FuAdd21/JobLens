@@ -1,0 +1,13 @@
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notify_min_score NUMERIC(5,4) DEFAULT 0.65;
+
+CREATE TABLE IF NOT EXISTS notification_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+  channel VARCHAR(20) NOT NULL DEFAULT 'EMAIL', -- EMAIL | TELEGRAM (later)
+  status VARCHAR(20) NOT NULL DEFAULT 'SENT', -- SENT | FAILED
+  sent_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notification_log_user ON notification_log(user_id, sent_at DESC);

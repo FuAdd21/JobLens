@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { collectFromChannel } from './connectors/telegram/telegramCollector.js';
 import * as jobsService from './jobs.service.js';
 import { embedPendingJobs } from '../matching/matching.service.js';
+import { notifyAllEligibleUsers } from '../notifications/notification.service.js';
 
 const TELEGRAM_CHANNELS = (process.env.TELEGRAM_CHANNELS || '')
   .split(',')
@@ -36,4 +37,7 @@ export const startJobScheduler = () => {
 
   cron.schedule('*/30 * * * *', syncAllChannels);
   console.log('Job aggregation scheduler started (every 30 min).');
+
+  const notifyResult = await notifyAllEligibleUsers();
+  console.log('[scheduler] notifications:', notifyResult);
 };
