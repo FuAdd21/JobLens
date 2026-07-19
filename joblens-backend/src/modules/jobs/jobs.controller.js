@@ -1,6 +1,7 @@
 import * as jobsService from "./jobs.service.js";
 import { collectFromChannel } from "./connectors/telegram/telegramCollector.js";
 import { scrapeSite } from "./connectors/website/websiteScraper.js";
+import { scrapeGeneric } from "./connectors/website/genericScraper.js";
 import { embedPendingJobs } from "../matching/matching.service.js";
 
 export const getJobs = async (req, res, next) => {
@@ -98,9 +99,35 @@ export const toggleSource = async (req, res, next) => {
     const { query } = await import("../../database/pool.js");
     const { rows } = await query(
       "UPDATE job_sources SET active = NOT active WHERE id = $1 RETURNING *",
-      [req.params.id]
+      [req.params.id],
     );
     return res.json({ success: true, data: rows[0] });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const syncGenericWebsite = async (req, res, next) => {
+  try {
+    const { url, name } = req.body;
+    if (!url)
+      return res
+        .status(400)
+        .json({ success: false, message: "url is required." });
+
+    const source = await jobsService.getOrCreateJobSource(
+      name || url,
+      "WEBSITE_GENERIC",
+      url,
+    );
+    const posts = await scrapeGeneric(url);
+    const result = await jobsService.ingestRawPosts(posts, source.id);
+
+    return res.json({
+      success: true,
+      message: "Scrape complete.",
+      data: result,
+    });
   } catch (err) {
     next(err);
   }

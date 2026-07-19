@@ -13,6 +13,12 @@ router.patch(
   jobsController.toggleSource,
 );
 router.post(
+  "/sync/website-generic",
+  requireAuth,
+  requireAdmin,
+  jobsController.syncGenericWebsite,
+);
+router.post(
   "/sync/telegram",
   requireAuth,
   requireAdmin,
