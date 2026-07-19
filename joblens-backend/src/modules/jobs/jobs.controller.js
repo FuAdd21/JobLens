@@ -1,5 +1,6 @@
 import * as jobsService from './jobs.service.js';
 import { collectFromChannel } from './connectors/telegram/telegramCollector.js';
+import { embedPendingJobs } from '../matching/matching.service.js';
 
 export const getJobs = async (req, res, next) => {
   try {
@@ -37,7 +38,9 @@ export const syncTelegramChannel = async (req, res, next) => {
     const posts = await collectFromChannel(normalizedChannel, 50);
     const result = await jobsService.ingestRawPosts(posts, source.id);
 
-    return res.json({ success: true, message: 'Sync complete.', data: result });
+    const embedResult = await embedPendingJobs();
+
+    return res.json({ success: true, message: 'Sync complete.', data: { ...result, embedResult } });
   } catch (err) {
     next(err);
   }

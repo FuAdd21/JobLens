@@ -6,6 +6,7 @@ import authRoutes from './modules/auth/auth.routes.js';
 import profileRoutes from './modules/profile/profile.routes.js';
 import jobsRoutes from './modules/jobs/jobs.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import matchingRoutes from './modules/matching/matching.routes.js';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.get('/health', (req, res) => res.json({ status: 'healthy' }));
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/jobs', jobsRoutes);
+app.use('/api/v1/matches', matchingRoutes);
 
 app.use(errorHandler);
 

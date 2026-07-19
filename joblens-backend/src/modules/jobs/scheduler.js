@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { collectFromChannel } from './connectors/telegram/telegramCollector.js';
 import * as jobsService from './jobs.service.js';
+import { embedPendingJobs } from '../matching/matching.service.js';
 
 const TELEGRAM_CHANNELS = (process.env.TELEGRAM_CHANNELS || '')
   .split(',')
@@ -17,6 +18,9 @@ const syncAllChannels = async () => {
       );
       const posts = await collectFromChannel(channelUsername, 30);
       const result = await jobsService.ingestRawPosts(posts, source.id);
+
+      const embedResult = await embedPendingJobs();
+
       console.log(`[scheduler] ${channelUsername}:`, result);
     } catch (err) {
       console.error(`[scheduler] failed for ${channelUsername}:`, err.message);

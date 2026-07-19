@@ -1,10 +1,15 @@
 import { getTelegramClient } from './telegramClient.js';
 
 export const collectFromChannel = async (channelUsername, limit = 50) => {
+  console.log('[telegram] connecting...');
   const client = await getTelegramClient();
-  const normalizedChannel = channelUsername.replace(/^@/, '');
-  const entity = await client.getEntity(normalizedChannel);
+  console.log('[telegram] connected. resolving entity:', channelUsername);
+
+  const entity = await client.getEntity(channelUsername);
+  console.log('[telegram] entity resolved, fetching messages...');
+
   const messages = await client.getMessages(entity, { limit });
+  console.log('[telegram] got', messages.length, 'messages');
 
   return messages
     .filter((message) => message.message && message.message.trim().length > 20)
