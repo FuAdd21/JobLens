@@ -4,6 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import Admin from "./pages/Admin.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Landing from "./pages/Landing.jsx";
 import Login from "./pages/Login.jsx";
 import NotificationHistory from "./pages/NotificationHistory.jsx";
 import ProfileSetup from "./pages/ProfileSetup.jsx";
@@ -63,8 +64,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Login />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
