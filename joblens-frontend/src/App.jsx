@@ -1,12 +1,13 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import Navbar from './components/Navbar.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
-import { AuthProvider } from './context/AuthContext.jsx';
-import Dashboard from './pages/Dashboard.jsx';
-import Login from './pages/Login.jsx';
-import NotificationHistory from './pages/NotificationHistory.jsx';
-import ProfileSetup from './pages/ProfileSetup.jsx';
-import Register from './pages/Register.jsx';
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Navbar from "./components/Navbar.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import Admin from "./pages/Admin.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import Login from "./pages/Login.jsx";
+import NotificationHistory from "./pages/NotificationHistory.jsx";
+import ProfileSetup from "./pages/ProfileSetup.jsx";
+import Register from "./pages/Register.jsx";
 
 const Layout = ({ children }) => (
   <>
@@ -48,6 +49,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <NotificationHistory />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Admin />
                 </Layout>
               </ProtectedRoute>
             }

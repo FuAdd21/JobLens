@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
-import styles from './Navbar.module.css';
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
+import styles from "./Navbar.module.css";
 
 const Navbar = () => {
   const { logout } = useAuth();
@@ -12,6 +12,7 @@ const Navbar = () => {
         <Link to="/dashboard">Matches</Link>
         <Link to="/profile">Profile</Link>
         <Link to="/notifications">Notifications</Link>
+        <Link to="/admin">Admin</Link>
         <button onClick={logout}>Log out</button>
       </div>
     </nav>
