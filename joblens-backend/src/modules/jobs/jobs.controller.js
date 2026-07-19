@@ -1,6 +1,7 @@
-import * as jobsService from './jobs.service.js';
-import { collectFromChannel } from './connectors/telegram/telegramCollector.js';
-import { embedPendingJobs } from '../matching/matching.service.js';
+import * as jobsService from "./jobs.service.js";
+import { collectFromChannel } from "./connectors/telegram/telegramCollector.js";
+import { scrapeSite } from "./connectors/website/websiteScraper.js";
+import { embedPendingJobs } from "../matching/matching.service.js";
 
 export const getJobs = async (req, res, next) => {
   try {
@@ -25,14 +26,16 @@ export const syncTelegramChannel = async (req, res, next) => {
   try {
     const { channelUsername } = req.body;
     if (!channelUsername) {
-      return res.status(400).json({ success: false, message: 'channelUsername is required.' });
+      return res
+        .status(400)
+        .json({ success: false, message: "channelUsername is required." });
     }
 
-    const normalizedChannel = channelUsername.replace(/^@/, '');
+    const normalizedChannel = channelUsername.replace(/^@/, "");
     const source = await jobsService.getOrCreateJobSource(
       normalizedChannel,
-      'TELEGRAM',
-      normalizedChannel
+      "TELEGRAM",
+      normalizedChannel,
     );
 
     const posts = await collectFromChannel(normalizedChannel, 50);
@@ -40,7 +43,51 @@ export const syncTelegramChannel = async (req, res, next) => {
 
     const embedResult = await embedPendingJobs();
 
-    return res.json({ success: true, message: 'Sync complete.', data: { ...result, embedResult } });
+    return res.json({
+      success: true,
+      message: "Sync complete.",
+      data: { ...result, embedResult },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const syncWebsite = async (req, res, next) => {
+  try {
+    const { adapterKey } = req.body;
+    if (!adapterKey) {
+      return res
+        .status(400)
+        .json({ success: false, message: "adapterKey is required." });
+    }
+
+    const source = await jobsService.getOrCreateJobSource(
+      adapterKey,
+      "WEBSITE",
+      adapterKey,
+    );
+    const posts = await scrapeSite(adapterKey);
+    const result = await jobsService.ingestRawPosts(posts, source.id);
+    const embedResult = await embedPendingJobs();
+
+    return res.json({
+      success: true,
+      message: "Website sync complete.",
+      data: { ...result, embedResult },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getJobSources = async (req, res, next) => {
+  try {
+    const { query } = await import("../../database/pool.js");
+    const { rows } = await query(
+      "SELECT * FROM job_sources ORDER BY reliability_score DESC, created_at DESC",
+    );
+    return res.json({ success: true, data: rows });
   } catch (err) {
     next(err);
   }

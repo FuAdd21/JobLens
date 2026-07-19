@@ -2,15 +2,25 @@ import { query } from '../../database/pool.js';
 import { parseJobPosting } from './jobParser.js';
 import { computeDedupHash, findDuplicateJob } from './dedup.js';
 
+export const getActiveJobSources = async (type = null) => {
+  const { rows } = await query(
+    `SELECT * FROM job_sources WHERE active = TRUE ${type ? 'AND type = $1' : ''} ORDER BY reliability_score DESC`,
+    type ? [type] : []
+  );
+  return rows;
+};
+
 export const getOrCreateJobSource = async (name, type, identifier) => {
-  const existing = await query(
+  const { rows: existing } = await query(
     'SELECT * FROM job_sources WHERE type = $1 AND identifier = $2',
     [type, identifier]
   );
-  if (existing.rows[0]) return existing.rows[0];
+  if (existing[0]) return existing[0];
 
   const { rows } = await query(
-    'INSERT INTO job_sources (name, type, identifier) VALUES ($1, $2, $3) RETURNING *',
+    `INSERT INTO job_sources (name, type, identifier)
+     VALUES ($1, $2, $3)
+     RETURNING *`,
     [name, type, identifier]
   );
   return rows[0];
