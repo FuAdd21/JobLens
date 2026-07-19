@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import api from '../api/client.js';
-import styles from './Admin.module.css';
+import { useState, useEffect } from "react";
+import api from "../api/client.js";
+import styles from "./Admin.module.css";
 
 const Admin = () => {
   const [sources, setSources] = useState([]);
@@ -9,17 +9,17 @@ const Admin = () => {
   const [discoveryResult, setDiscoveryResult] = useState(null);
   const [syncingId, setSyncingId] = useState(null);
   const [syncResults, setSyncResults] = useState({});
-  const [websiteKey, setWebsiteKey] = useState('ethiojobs');
+  const [websiteKey, setWebsiteKey] = useState("ethiojobs");
   const [websiteResult, setWebsiteResult] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const loadSources = async () => {
     setLoadingSources(true);
     try {
-      const { data } = await api.get('/jobs/sources');
+      const { data } = await api.get("/jobs/sources");
       setSources(data.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load sources.');
+      setError(err.response?.data?.message || "Failed to load sources.");
     } finally {
       setLoadingSources(false);
     }
@@ -31,14 +31,14 @@ const Admin = () => {
 
   const handleDiscover = async () => {
     setDiscovering(true);
-    setError('');
+    setError("");
     setDiscoveryResult(null);
     try {
-      const { data } = await api.post('/jobs/discover-channels');
+      const { data } = await api.post("/jobs/discover-channels");
       setDiscoveryResult(data.data);
       await loadSources();
     } catch (err) {
-      setError(err.response?.data?.message || 'Discovery failed.');
+      setError(err.response?.data?.message || "Discovery failed.");
     } finally {
       setDiscovering(false);
     }
@@ -46,9 +46,11 @@ const Admin = () => {
 
   const handleSyncChannel = async (identifier, sourceId) => {
     setSyncingId(sourceId);
-    setError('');
+    setError("");
     try {
-      const { data } = await api.post('/jobs/sync/telegram', { channelUsername: identifier });
+      const { data } = await api.post("/jobs/sync/telegram", {
+        channelUsername: identifier,
+      });
       setSyncResults((prev) => ({ ...prev, [sourceId]: data.data }));
     } catch (err) {
       setError(err.response?.data?.message || `Sync failed for ${identifier}.`);
@@ -58,17 +60,28 @@ const Admin = () => {
   };
 
   const handleSyncWebsite = async () => {
-    setSyncingId('website');
-    setError('');
+    setSyncingId("website");
+    setError("");
     setWebsiteResult(null);
     try {
-      const { data } = await api.post('/jobs/sync/website', { adapterKey: websiteKey });
+      const { data } = await api.post("/jobs/sync/website", {
+        adapterKey: websiteKey,
+      });
       setWebsiteResult(data.data);
       await loadSources();
     } catch (err) {
-      setError(err.response?.data?.message || 'Website sync failed.');
+      setError(err.response?.data?.message || "Website sync failed.");
     } finally {
       setSyncingId(null);
+    }
+  };
+
+  const handleToggleSource = async (sourceId) => {
+    try {
+      await api.patch(`/jobs/sources/${sourceId}/toggle`);
+      await loadSources();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to toggle source.");
     }
   };
 
@@ -81,16 +94,18 @@ const Admin = () => {
         <div className={styles.sectionHeader}>
           <h2>Telegram Channel Discovery</h2>
           <button onClick={handleDiscover} disabled={discovering}>
-            {discovering ? 'Searching Telegram...' : 'Discover Channels'}
+            {discovering ? "Searching Telegram..." : "Discover Channels"}
           </button>
         </div>
         <p className={styles.hint}>
-          Searches Telegram for public job-related channels and registers ones with 500+ members.
+          Searches Telegram for public job-related channels and registers ones
+          with 500+ members.
         </p>
         {discoveryResult && (
           <p className={styles.result}>
-            Searched {discoveryResult.searched} terms · found {discoveryResult.found} channels ·
-            {' '}{discoveryResult.qualified} qualified · {discoveryResult.registered} registered.
+            Searched {discoveryResult.searched} terms · found{" "}
+            {discoveryResult.found} channels · {discoveryResult.qualified}{" "}
+            qualified · {discoveryResult.registered} registered.
           </p>
         )}
       </section>
@@ -100,16 +115,24 @@ const Admin = () => {
           <h2>Website Sync</h2>
         </div>
         <div className={styles.row}>
-          <select value={websiteKey} onChange={(e) => setWebsiteKey(e.target.value)}>
+          <select
+            value={websiteKey}
+            onChange={(e) => setWebsiteKey(e.target.value)}
+          >
             <option value="ethiojobs">ethiojobs.net</option>
           </select>
-          <button onClick={handleSyncWebsite} disabled={syncingId === 'website'}>
-            {syncingId === 'website' ? 'Scraping...' : 'Sync Now'}
+          <button
+            onClick={handleSyncWebsite}
+            disabled={syncingId === "website"}
+          >
+            {syncingId === "website" ? "Scraping..." : "Sync Now"}
           </button>
         </div>
         {websiteResult && (
           <p className={styles.result}>
-            Created {websiteResult.created} · Duplicates {websiteResult.duplicates} · Skipped {websiteResult.skipped} · Total scanned {websiteResult.total}
+            Created {websiteResult.created} · Duplicates{" "}
+            {websiteResult.duplicates} · Skipped {websiteResult.skipped} · Total
+            scanned {websiteResult.total}
           </p>
         )}
       </section>
@@ -128,6 +151,7 @@ const Admin = () => {
                 <th>Type</th>
                 <th>Reliability</th>
                 <th>Last Sync</th>
+                <th>Status</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -137,15 +161,26 @@ const Admin = () => {
                   <td>{s.name}</td>
                   <td>{s.type}</td>
                   <td>{s.reliability_score}</td>
-                  <td>{s.last_successful_sync ? new Date(s.last_successful_sync).toLocaleString() : 'Never'}</td>
                   <td>
-                    {s.type === 'TELEGRAM' && (
+                    {s.last_successful_sync
+                      ? new Date(s.last_successful_sync).toLocaleString()
+                      : "Never"}
+                  </td>
+                  <td>{s.active ? "Active" : "Inactive"}</td>
+                  <td>
+                    <button
+                      className={styles.smallBtn}
+                      onClick={() => handleToggleSource(s.id)}
+                    >
+                      {s.active ? "Deactivate" : "Activate"}
+                    </button>
+                    {s.type === "TELEGRAM" && (
                       <button
                         className={styles.smallBtn}
                         onClick={() => handleSyncChannel(s.identifier, s.id)}
                         disabled={syncingId === s.id}
                       >
-                        {syncingId === s.id ? 'Syncing...' : 'Sync'}
+                        {syncingId === s.id ? "Syncing..." : "Sync"}
                       </button>
                     )}
                     {syncResults[s.id] && (
