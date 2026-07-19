@@ -105,12 +105,21 @@ export const getUserSkills = async (userId) => {
 export const setUserSkills = async (userId, skills) => {
   await ensureProfileExists(userId);
 
+  const uniqueSkills = Array.from(
+    new Map(
+      skills
+        .map((skill) => ({ ...skill, name: skill.name.trim() }))
+        .filter((skill) => skill.name)
+        .map((skill) => [skill.name.toLowerCase(), skill])
+    ).values()
+  );
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     await client.query('DELETE FROM user_skills WHERE user_id = $1', [userId]);
 
-    for (const skill of skills) {
+    for (const skill of uniqueSkills) {
       const skillRow = await findOrCreateSkill(client, skill.name, skill.category);
       await client.query(
         `INSERT INTO user_skills (user_id, skill_id, proficiency_level, years_experience)

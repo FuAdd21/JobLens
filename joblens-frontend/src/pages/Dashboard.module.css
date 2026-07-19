@@ -1,0 +1,59 @@
+.container {
+  min-height: calc(100vh - 64px);
+  background: #0f172a;
+  padding: 2rem;
+  color: #f1f5f9;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.topBar h1 {
+  margin: 0;
+}
+
+.topBar button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.topBar button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.empty {
+  color: #94a3b8;
+}
+
+.error {
+  color: #f87171;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 560px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .topBar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

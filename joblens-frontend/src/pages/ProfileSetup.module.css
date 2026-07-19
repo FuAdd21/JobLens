@@ -1,0 +1,121 @@
+.container {
+  min-height: calc(100vh - 64px);
+  background: #0f172a;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.form {
+  background: #1e293b;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #f1f5f9;
+}
+
+.form h1 {
+  margin: 0;
+}
+
+.hint {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.form label {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: 0.75rem;
+}
+
+.form input,
+.form select {
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.chip,
+.chipActive {
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.chipActive {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.skillInputRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.skillInputRow input {
+  flex: 1;
+}
+
+.skillInputRow button {
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: #334155;
+  color: white;
+  cursor: pointer;
+}
+
+.skillChip {
+  background: #334155;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.skillChip button {
+  background: none;
+  border: none;
+  color: #f87171;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.saveBtn {
+  margin-top: 1.5rem;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.error {
+  color: #f87171;
+  margin: 0 0 0.5rem;
+}

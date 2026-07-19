@@ -23,6 +23,9 @@ const syncAllChannels = async () => {
       const embedResult = await embedPendingJobs();
 
       console.log(`[scheduler] ${channelUsername}:`, result);
+      
+  const notifyResult = await notifyAllEligibleUsers();
+  console.log('[scheduler] notifications:', notifyResult);
     } catch (err) {
       console.error(`[scheduler] failed for ${channelUsername}:`, err.message);
     }
@@ -37,7 +40,4 @@ export const startJobScheduler = () => {
 
   cron.schedule('*/30 * * * *', syncAllChannels);
   console.log('Job aggregation scheduler started (every 30 min).');
-
-  const notifyResult = await notifyAllEligibleUsers();
-  console.log('[scheduler] notifications:', notifyResult);
 };
