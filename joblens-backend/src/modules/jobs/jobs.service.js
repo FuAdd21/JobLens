@@ -79,8 +79,8 @@ export const ingestRawPosts = async (posts, sourceId) => {
       `INSERT INTO jobs (
         title, description, organization_id, location, employment_type,
         experience_level, education_requirement, skills, source_id, source_url,
-        raw_content, deadline_at, posted_at, dedup_hash
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        raw_content, deadline_at, posted_at, dedup_hash, any_field_eligible, min_years_required
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
       [
         parsed.title,
         post.rawContent,
@@ -96,6 +96,8 @@ export const ingestRawPosts = async (posts, sourceId) => {
         parsed.deadlineAt,
         post.postedAt,
         dedupHash,
+        parsed.anyFieldEligible || false,
+        parsed.minYearsRequired || null,
       ],
     );
     created += 1;

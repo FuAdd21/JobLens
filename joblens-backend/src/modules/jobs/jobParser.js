@@ -25,6 +25,18 @@ const DEADLINE_PATTERNS = [
   /closing date[:\s]+([a-z0-9,\s]+\d{4})/i,
 ];
 
+const ANY_FIELD_PATTERNS =
+  /\bany\s+field\b|\bany\s+discipline\b|\ball\s+fields\s+welcome\b|\bopen\s+to\s+all\s+background/i;
+
+const MIN_YEARS_PATTERN = /(\d+)\+?\s*years?\s+(of\s+)?experience/i;
+
+const extractMinYearsRequired = (text) => {
+  const match = text.match(MIN_YEARS_PATTERN);
+  return match ? Number(match[1]) : null;
+};
+
+const isAnyFieldEligible = (text) => ANY_FIELD_PATTERNS.test(text);
+
 const matchFirst = (text, keywordMap) => {
   for (const [key, pattern] of Object.entries(keywordMap)) {
     if (pattern.test(text)) return key;
@@ -33,8 +45,13 @@ const matchFirst = (text, keywordMap) => {
 };
 
 const extractTitle = (text) => {
-  const firstLine = text.split('\n').find((line) => line.trim().length > 0) || 'Untitled Position';
-  return firstLine.replace(/[*_#>-]/g, '').trim().slice(0, 200);
+  const firstLine =
+    text.split("\n").find((line) => line.trim().length > 0) ||
+    "Untitled Position";
+  return firstLine
+    .replace(/[*_#>-]/g, "")
+    .trim()
+    .slice(0, 200);
 };
 
 const extractDeadline = (text) => {
@@ -49,18 +66,32 @@ const extractDeadline = (text) => {
 };
 
 const extractLocation = (text) => {
-  const known = ['Addis Ababa', 'Adama', 'Hawassa', 'Bahir Dar', 'Mekelle', 'Remote', 'Ethiopia'];
-  const found = known.find((location) => new RegExp(`\\b${location}\\b`, 'i').test(text));
+  const known = [
+    "Addis Ababa",
+    "Adama",
+    "Hawassa",
+    "Bahir Dar",
+    "Mekelle",
+    "Remote",
+    "Ethiopia",
+  ];
+  const found = known.find((location) =>
+    new RegExp(`\\b${location}\\b`, "i").test(text),
+  );
   return found || null;
 };
 
-const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const extractSkills = (text, knownSkillNames = []) =>
-  knownSkillNames.filter((skill) => new RegExp(`\\b${escapeRegex(skill)}\\b`, 'i').test(text));
+  knownSkillNames.filter((skill) =>
+    new RegExp(`\\b${escapeRegex(skill)}\\b`, "i").test(text),
+  );
 
 const extractOrganization = (text) => {
-  const match = text.match(/^([A-Z][A-Za-z0-9&.\s]{2,60}?)\s+(is\s+hiring|is\s+looking\s+for|seeks)/i);
+  const match = text.match(
+    /^([A-Z][A-Za-z0-9&.\s]{2,60}?)\s+(is\s+hiring|is\s+looking\s+for|seeks)/i,
+  );
   return match ? match[1].trim() : null;
 };
 
@@ -70,7 +101,9 @@ export const parseJobPosting = (rawContent, knownSkillNames = []) => ({
   location: extractLocation(rawContent),
   educationRequirement: matchFirst(rawContent, EDUCATION_KEYWORDS),
   experienceLevel: matchFirst(rawContent, EXPERIENCE_KEYWORDS),
-  employmentType: matchFirst(rawContent, EMPLOYMENT_KEYWORDS) || 'FULL_TIME',
+  employmentType: matchFirst(rawContent, EMPLOYMENT_KEYWORDS) || "FULL_TIME",
   skills: extractSkills(rawContent, knownSkillNames),
   deadlineAt: extractDeadline(rawContent),
+  anyFieldEligible: isAnyFieldEligible(rawContent),
+  minYearsRequired: extractMinYearsRequired(rawContent),
 });

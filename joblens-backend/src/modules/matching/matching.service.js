@@ -1,19 +1,29 @@
-import { query } from '../../database/pool.js';
-import { embedJobText, embedProfileText } from './embeddingService.js';
-import { getProfileByUserId, getUserSkills } from '../profile/profile.service.js';
+import { query } from "../../database/pool.js";
+import { embedJobText, embedProfileText } from "./embeddingService.js";
+import {
+  getProfileByUserId,
+  getUserSkills,
+} from "../profile/profile.service.js";
 
 // Weights: semantic similarity carries most of the signal, skill overlap is a boost/tiebreaker.
 const SEMANTIC_WEIGHT = 0.7;
 const SKILL_WEIGHT = 0.3;
 
-const toVectorLiteral = (arr) => `[${arr.join(',')}]`;
+const toVectorLiteral = (arr) => `[${arr.join(",")}]`;
+
+const EXPERIENCE_YEARS_MAP = {
+  INTERNSHIP: 0,
+  JUNIOR: 1,
+  MID: 3,
+  SENIOR: 6,
+};
 
 // --- Embedding new/changed records ---
 
 export const embedAndStoreJob = async (job) => {
   const embedding = await embedJobText(job);
   if (!embedding) return false;
-  await query('UPDATE jobs SET embedding = $1 WHERE id = $2', [
+  await query("UPDATE jobs SET embedding = $1 WHERE id = $2", [
     toVectorLiteral(embedding),
     job.id,
   ]);
@@ -28,7 +38,7 @@ export const embedAndStoreProfile = async (userId) => {
   const embedding = await embedProfileText(profile, skills);
   if (!embedding) return false;
 
-  await query('UPDATE profiles SET embedding = $1 WHERE user_id = $2', [
+  await query("UPDATE profiles SET embedding = $1 WHERE user_id = $2", [
     toVectorLiteral(embedding),
     userId,
   ]);
@@ -39,7 +49,7 @@ export const embedAndStoreProfile = async (userId) => {
 export const embedPendingJobs = async (limit = 100) => {
   const { rows } = await query(
     `SELECT id, title, description, skills FROM jobs WHERE embedding IS NULL LIMIT $1`,
-    [limit]
+    [limit],
   );
 
   let succeeded = 0;
@@ -61,22 +71,31 @@ const computeSkillOverlap = async (userId, jobSkills) => {
   const userSkillNames = new Set(userSkills.map((s) => s.name.toLowerCase()));
   const jobSkillNames = jobSkills.map((s) => s.toLowerCase());
 
-  const overlapCount = jobSkillNames.filter((s) => userSkillNames.has(s)).length;
+  const overlapCount = jobSkillNames.filter((s) =>
+    userSkillNames.has(s),
+  ).length;
   return jobSkillNames.length > 0 ? overlapCount / jobSkillNames.length : 0;
 };
 
 // --- Core matching: find best jobs for one user using pgvector cosine distance ---
 
 export const computeMatchesForUser = async (userId, limit = 30) => {
+  const profile = await getProfileByUserId(userId);
   const profileEmbedded = await embedAndStoreProfile(userId);
   if (!profileEmbedded) {
-    throw Object.assign(new Error('Profile is incomplete — add profession and skills first.'), {
-      status: 400,
-    });
+    throw Object.assign(
+      new Error("Profile is incomplete — add profession and skills first."),
+      {
+        status: 400,
+      },
+    );
   }
+
+  const userMaxYears = EXPERIENCE_YEARS_MAP[profile.experience_level] ?? 1;
 
   const { rows: candidates } = await query(
     `SELECT j.id, j.title, j.skills, j.source_url, j.location, j.deadline_at, j.posted_at,
+            j.any_field_eligible, j.min_years_required,
             1 - (j.embedding <=> (SELECT embedding FROM profiles WHERE user_id = $1)) AS similarity
      FROM jobs j
      JOIN job_sources js ON js.id = j.source_id
@@ -84,9 +103,11 @@ export const computeMatchesForUser = async (userId, limit = 30) => {
        AND j.status = 'ACTIVE'
        AND j.posted_at >= now() - interval '45 days'
        AND js.reliability_score >= 20
+       -- exclude postings that explicitly require more years than the user has
+       AND (j.min_years_required IS NULL OR j.min_years_required <= $3)
      ORDER BY j.embedding <=> (SELECT embedding FROM profiles WHERE user_id = $1)
      LIMIT $2`,
-    [userId, limit]
+    [userId, limit, userMaxYears + 1],
   );
 
   const results = [];
@@ -94,20 +115,32 @@ export const computeMatchesForUser = async (userId, limit = 30) => {
     const skillScore = await computeSkillOverlap(userId, job.skills);
 
     // Small recency boost — up to +5% for something posted today, tapering to 0 at 45 days
-    const ageDays = (Date.now() - new Date(job.posted_at).getTime()) / (1000 * 60 * 60 * 24);
-    const recencyBoost = Math.max(0, (1 - ageDays / 45)) * 0.05;
+    const ageDays =
+      (Date.now() - new Date(job.posted_at).getTime()) / (1000 * 60 * 60 * 24);
+    const recencyBoost = Math.max(0, 1 - ageDays / 45) * 0.05;
 
-    const finalScore = SEMANTIC_WEIGHT * job.similarity + SKILL_WEIGHT * skillScore + recencyBoost;
+    // "Any field" postings don't need skill/profession overlap to be legitimate —
+    // boost them on semantic similarity alone rather than penalizing for low skill match.
+    const skillWeight = job.any_field_eligible ? 0.1 : SKILL_WEIGHT;
+    const semanticWeight = job.any_field_eligible ? 0.9 : SEMANTIC_WEIGHT;
+
+    const finalScore =
+      semanticWeight * job.similarity + skillWeight * skillScore + recencyBoost;
 
     await query(
       `INSERT INTO matches (user_id, job_id, similarity_score, skill_overlap_score, final_score)
        VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (user_id, job_id)
        DO UPDATE SET similarity_score = $3, skill_overlap_score = $4, final_score = $5`,
-      [userId, job.id, job.similarity, skillScore, finalScore]
+      [userId, job.id, job.similarity, skillScore, finalScore],
     );
 
-    results.push({ ...job, similarity: job.similarity, skillScore, finalScore });
+    results.push({
+      ...job,
+      similarity: job.similarity,
+      skillScore,
+      finalScore,
+    });
   }
 
   return results.sort((a, b) => b.finalScore - a.finalScore);
@@ -124,7 +157,7 @@ export const getStoredMatches = async (userId, limit = 20) => {
      WHERE m.user_id = $1 AND j.status = 'ACTIVE'
      ORDER BY m.final_score DESC
      LIMIT $2`,
-    [userId, limit]
+    [userId, limit],
   );
   return rows;
 };
