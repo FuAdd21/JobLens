@@ -33,6 +33,13 @@ app.use('/api/v1/jobs', jobsRoutes);
 app.use('/api/v1/matches', matchingRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 
+// Backward-compatible aliases for clients built with the API host but no /api/v1 prefix.
+app.use('/auth', authRoutes);
+app.use('/profile', profileRoutes);
+app.use('/jobs', jobsRoutes);
+app.use('/matches', matchingRoutes);
+app.use('/notifications', notificationRoutes);
+
 app.use(errorHandler);
 
 export default app;
