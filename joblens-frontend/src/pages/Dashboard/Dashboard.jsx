@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import api from '../api/client.js';
-import JobCard from '../components/JobCard.jsx';
+import api from '../../api/client.js';
+import JobCard from '../../components/JobCard/JobCard.jsx';
 import { RefreshCw, Telescope } from 'lucide-react';
 
 const SkeletonCard = () => (

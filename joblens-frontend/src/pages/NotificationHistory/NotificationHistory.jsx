@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../api/client.js';
+import api from '../../api/client.js';
 import { Bell, ExternalLink } from 'lucide-react';
 
 const NotificationHistory = () => {
