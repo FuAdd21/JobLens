@@ -1,7 +1,6 @@
 import * as jobsService from "./jobs.service.js";
 import { collectFromChannel } from "./connectors/telegram/telegramCollector.js";
-import { scrapeSite } from "./connectors/website/websiteScraper.js";
-import { scrapeGeneric } from "./connectors/website/genericScraper.js";
+import { scrapeGeneric, scrapeSite } from "./connectors/website/genericScraper.js";
 import { embedPendingJobs } from "../matching/matching.service.js";
 
 export const getJobs = async (req, res, next) => {
