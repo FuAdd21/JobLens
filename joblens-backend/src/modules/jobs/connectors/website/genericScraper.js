@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { adapters } from './adapters/index.js';
+import { logger } from '../../../../utils/logger.js';
 
 const DEFAULT_TIMEOUT_MS = 10000;
 const DEFAULT_HEADERS = {
@@ -23,11 +24,24 @@ export const scrapeSite = async (adapterKey) => {
 };
 
 const fetchHtml = async (url) => {
-  const { data } = await axios.get(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; JobLensBot/1.0; +https://joblens.app)' },
-    timeout: 15000,
-  });
-  return cheerio.load(data);
+  try {
+    const expectedHost = new URL(url).host;
+    const { data, request } = await axios.get(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; JobLensBot/1.0; +https://joblens.app)' },
+      maxRedirects: 3,
+      timeout: 15000,
+    });
+    const finalUrl = request?.res?.responseUrl || url;
+    if (new URL(finalUrl).host !== expectedHost) {
+      // FIXED: generic scraper refuses redirects into unexpected domains.
+      throw Object.assign(new Error('Scraper redirect crossed to an unexpected domain.'), { status: 400 });
+    }
+    return cheerio.load(data);
+  } catch (err) {
+    // FIXED: unavailable target sites produce an empty scrape result instead of an unhandled throw.
+    logger.warn(`[scraper] failed to fetch ${url}:`, err.message);
+    return cheerio.load('');
+  }
 };
 
 // Heuristic: job listing pages are almost always repeated "cards" — the same tag/class

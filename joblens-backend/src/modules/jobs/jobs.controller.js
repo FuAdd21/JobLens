@@ -1,7 +1,17 @@
+import { validationResult } from "express-validator";
 import * as jobsService from "./jobs.service.js";
 import { collectFromChannel } from "./connectors/telegram/telegramCollector.js";
 import { scrapeGeneric, scrapeSite } from "./connectors/website/genericScraper.js";
+import { discoverChannels } from "./connectors/telegram/channelDiscovery.js";
 import { embedPendingJobs } from "../matching/matching.service.js";
+
+const validateRequest = (req, res) => {
+  const errors = validationResult(req);
+  if (errors.isEmpty()) return false;
+  // FIXED: mutating job endpoints now check express-validator results before doing work.
+  res.status(400).json({ success: false, message: "Validation failed.", errors: errors.array() });
+  return true;
+};
 
 export const getJobs = async (req, res, next) => {
   try {
@@ -9,12 +19,15 @@ export const getJobs = async (req, res, next) => {
 
     return res.json({
       success: true,
-      data: result.jobs,
-      meta: {
-        page: result.page,
-        limit: result.limit,
-        totalItems: result.total,
-        totalPages: Math.ceil(result.total / result.limit),
+      // FIXED: pagination metadata is nested under data to keep the response envelope consistent.
+      data: {
+        items: result.jobs,
+        meta: {
+          page: result.page,
+          limit: result.limit,
+          totalItems: result.total,
+          totalPages: Math.ceil(result.total / result.limit),
+        },
       },
     });
   } catch (err) {
@@ -24,12 +37,9 @@ export const getJobs = async (req, res, next) => {
 
 export const syncTelegramChannel = async (req, res, next) => {
   try {
+    if (validateRequest(req, res)) return;
+
     const { channelUsername } = req.body;
-    if (!channelUsername) {
-      return res
-        .status(400)
-        .json({ success: false, message: "channelUsername is required." });
-    }
 
     const normalizedChannel = channelUsername.replace(/^@/, "");
     const source = await jobsService.getOrCreateJobSource(
@@ -55,12 +65,9 @@ export const syncTelegramChannel = async (req, res, next) => {
 
 export const syncWebsite = async (req, res, next) => {
   try {
+    if (validateRequest(req, res)) return;
+
     const { adapterKey } = req.body;
-    if (!adapterKey) {
-      return res
-        .status(400)
-        .json({ success: false, message: "adapterKey is required." });
-    }
 
     const source = await jobsService.getOrCreateJobSource(
       adapterKey,
@@ -83,11 +90,9 @@ export const syncWebsite = async (req, res, next) => {
 
 export const getJobSources = async (req, res, next) => {
   try {
-    const { query } = await import("../../database/pool.js");
-    const { rows } = await query(
-      "SELECT * FROM job_sources ORDER BY reliability_score DESC, created_at DESC",
-    );
-    return res.json({ success: true, data: rows });
+    // FIXED: controller delegates source queries to jobs.service.js.
+    const sources = await jobsService.listJobSources();
+    return res.json({ success: true, data: sources });
   } catch (err) {
     next(err);
   }
@@ -95,12 +100,14 @@ export const getJobSources = async (req, res, next) => {
 
 export const toggleSource = async (req, res, next) => {
   try {
-    const { query } = await import("../../database/pool.js");
-    const { rows } = await query(
-      "UPDATE job_sources SET active = NOT active WHERE id = $1 RETURNING *",
-      [req.params.id],
-    );
-    return res.json({ success: true, data: rows[0] });
+    if (validateRequest(req, res)) return;
+
+    // FIXED: controller delegates source mutations to jobs.service.js.
+    const source = await jobsService.toggleJobSource(req.params.id);
+    if (!source) {
+      return res.status(404).json({ success: false, message: "Source not found." });
+    }
+    return res.json({ success: true, data: source });
   } catch (err) {
     next(err);
   }
@@ -108,11 +115,9 @@ export const toggleSource = async (req, res, next) => {
 
 export const syncGenericWebsite = async (req, res, next) => {
   try {
+    if (validateRequest(req, res)) return;
+
     const { url, name } = req.body;
-    if (!url)
-      return res
-        .status(400)
-        .json({ success: false, message: "url is required." });
 
     const source = await jobsService.getOrCreateJobSource(
       name || url,
@@ -127,6 +132,16 @@ export const syncGenericWebsite = async (req, res, next) => {
       message: "Scrape complete.",
       data: result,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const discoverJobChannels = async (req, res, next) => {
+  try {
+    // FIXED: discovery route uses a controller handler instead of an inline async route body.
+    const result = await discoverChannels();
+    return res.json({ success: true, data: result });
   } catch (err) {
     next(err);
   }

@@ -1,9 +1,16 @@
+import { validationResult } from 'express-validator';
 import * as notificationService from './notification.service.js';
 import { query } from '../../database/pool.js';
 
 // Manual trigger for testing / "check now" button
 export const checkMyNotifications = async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      // FIXED: notification check now validates before querying/sending.
+      return res.status(400).json({ success: false, message: 'Validation failed.', errors: errors.array() });
+    }
+
     const { rows } = await query('SELECT email FROM users WHERE id = $1', [req.user.sub]);
     const email = rows[0]?.email;
     const result = await notificationService.notifyUserOfNewMatches(req.user.sub, email, 0.5);

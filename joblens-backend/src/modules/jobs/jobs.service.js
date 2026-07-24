@@ -26,6 +26,23 @@ export const getOrCreateJobSource = async (name, type, identifier) => {
   return rows[0];
 };
 
+export const listJobSources = async () => {
+  // FIXED: source reads live in the service layer instead of dynamic DB imports inside controllers.
+  const { rows } = await query(
+    "SELECT * FROM job_sources ORDER BY reliability_score DESC, created_at DESC",
+  );
+  return rows;
+};
+
+export const toggleJobSource = async (sourceId) => {
+  // FIXED: source mutation is parameterized and centralized in the service layer.
+  const { rows } = await query(
+    "UPDATE job_sources SET active = NOT active WHERE id = $1 RETURNING *",
+    [sourceId],
+  );
+  return rows[0] || null;
+};
+
 const getOrCreateOrganization = async (name) => {
   if (!name) return null;
 

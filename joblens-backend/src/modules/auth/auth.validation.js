@@ -13,3 +13,8 @@ export const loginValidation = [
   body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
   body('password').notEmpty().withMessage('Password is required'),
 ];
+
+export const noBodyValidation = [
+  // FIXED: no-body mutating auth endpoints still have an explicit validation rule.
+  body().custom((value) => Object.keys(value || {}).length === 0).withMessage('Request body is not allowed.'),
+];

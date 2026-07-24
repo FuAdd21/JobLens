@@ -1,5 +1,6 @@
 import pg from 'pg';
 import { env } from '../config/env.js';
+import { logger } from '../utils/logger.js';
 
 const { Pool } = pg;
 
@@ -10,7 +11,8 @@ export const pool = new Pool({
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected DB pool error', err);
+  // FIXED: database pool errors use the shared logger.
+  logger.error('Unexpected DB pool error', err);
 });
 
 export const query = (text, params) => pool.query(text, params);

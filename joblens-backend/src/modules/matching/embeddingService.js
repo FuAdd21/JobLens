@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '../../config/env.js';
+import { logger } from '../../utils/logger.js';
 
 const genAI = new GoogleGenerativeAI(env.geminiApiKey);
 const model = genAI.getGenerativeModel({ model: 'gemini-embedding-001' });
@@ -24,7 +25,8 @@ export const embedText = async (text, taskType = 'RETRIEVAL_DOCUMENT') => {
     }
     return values;
   } catch (err) {
-    console.error('Embedding failed:', err.message);
+    // FIXED: use shared logger instead of direct console output.
+    logger.error('Embedding failed:', err.message);
     return null;
   }
 };

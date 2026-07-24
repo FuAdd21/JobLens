@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { pool } from './pool.js';
+import { logger } from '../utils/logger.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.join(__dirname, 'migrations');
@@ -20,21 +21,23 @@ const run = async () => {
 
   for (const file of files) {
     if (applied.has(file)) {
-      console.log(`Skipping already-applied migration: ${file}`);
+      // FIXED: migration output uses the shared logger.
+      logger.info(`Skipping already-applied migration: ${file}`);
       continue;
     }
 
     const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8');
-    console.log(`Running migration: ${file}`);
+    logger.info(`Running migration: ${file}`);
     await pool.query(sql);
     await pool.query('INSERT INTO _migrations (filename) VALUES ($1)', [file]);
   }
 
-  console.log('Migrations complete.');
+  logger.info('Migrations complete.');
   await pool.end();
 };
 
 run().catch((err) => {
-  console.error('Migration failed:', err);
+  // FIXED: migration failures use the shared logger.
+  logger.error('Migration failed:', err);
   process.exit(1);
 });

@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { env } from '../../config/env.js';
+import { logger } from '../../utils/logger.js';
 
 const transporter = nodemailer.createTransport({
   host: env.smtp.host,
@@ -18,7 +19,8 @@ export const sendMail = async ({ to, subject, html }) => {
     });
     return true;
   } catch (err) {
-    console.error('Email send failed:', err.message);
+    // FIXED: use shared logger instead of direct console output.
+    logger.error('Email send failed:', err.message);
     return false;
   }
 };

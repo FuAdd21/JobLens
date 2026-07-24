@@ -71,6 +71,12 @@ export const login = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      // FIXED: logout now checks express-validator before mutating refresh token version.
+      return res.status(400).json({ success: false, message: 'Validation failed.', errors: errors.array() });
+    }
+
     if (req.user?.sub) {
       await authService.bumpRefreshTokenVersion(req.user.sub);
     }
