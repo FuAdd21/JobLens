@@ -66,7 +66,12 @@ export const discoverChannels = async () => {
 
   let registered = 0;
   for (const channel of qualified) {
-    const reliabilityScore = Math.min(100, Math.floor(channel.participantsCount / 1000));
+    // FIXED: old formula (participants / 1000) meant anything under 20,000 members
+    // scored below the reliability_score >= 20 cutoff used everywhere else in the app,
+    // silently excluding almost every real channel from matches and listings.
+    // Rescaled so a 1,000-member channel clears the bar (score 30) and a 500-member
+    // channel (the discovery minimum) still gets a reasonable starting score (20).
+    const reliabilityScore = Math.min(100, 20 + Math.floor(channel.participantsCount / 100));
     await getOrCreateJobSource(channel.title, 'TELEGRAM', channel.username);
     await updateSourceReliability(channel.username, reliabilityScore);
     registered += 1;
