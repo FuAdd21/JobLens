@@ -1,5 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import "tailwindcss";
+
+/* Tailwind v4 does NOT read tailwind.config.js theme.extend automatically.
+   Custom tokens must be declared here via @theme, or every bg-*/
+   /* text-* class
+   below silently generates no CSS at all -- which was the "invisible text" bug. * */
+@theme {
+  --color-page: #F7F8FA;
+  --color-skywash: #EAF6FB;
+  --color-surface: #FFFFFF;
+  --color-surface2: #F1F4F8;
+  --color-navy: #241D45;
+  --color-text: #1F2937;
+  --color-muted: #6B7280;
+  --color-line: #E5E7EB;
+  --color-blue: #2F6FED;
+  --color-blueSoft: #EAF1FF;
+  --color-magenta: #E8437A;
+  --color-orange: #F4793B;
+  --color-green: #7ED957;
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
 
 body {
   background: #F7F8FA;

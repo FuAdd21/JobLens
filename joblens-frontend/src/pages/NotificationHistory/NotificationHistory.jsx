@@ -14,32 +14,32 @@ const NotificationHistory = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-ink text-text px-6 md:px-12 py-10 max-w-4xl mx-auto">
-      <h1 className="font-display text-3xl font-semibold mb-8">Notification History</h1>
-      
+    <div className="min-h-screen bg-page text-text px-6 md:px-12 py-10 max-w-4xl mx-auto">
+      <h1 className="font-display text-3xl font-bold text-navy mb-8">Notification History</h1>
+
       {error && (
-        <div className="bg-surface border border-white/10 rounded-xl px-4 py-3 mb-6 text-sm text-brass">
+        <div className="bg-surface ring-1 ring-line rounded-xl px-4 py-3 mb-6 text-sm text-magenta shadow-sm">
           {error}
         </div>
       )}
 
       {history.length === 0 ? (
-        <div className="flex flex-col items-center text-center py-24 text-muted">
-          <Bell size={32} className="text-brass mb-4" />
-          <p className="font-display text-lg text-text mb-1">No notifications yet</p>
+        <div className="flex flex-col items-center text-center py-24 text-muted bg-surface ring-1 ring-line rounded-2xl shadow-sm">
+          <Bell size={32} className="text-blue mb-4" />
+          <p className="font-display text-lg text-navy mb-1">No notifications yet</p>
           <p className="text-sm">JobLens will email you when new matches appear.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {history.map((n) => (
-            <div key={n.id} className="bg-surface border border-white/5 rounded-xl p-5 hover:border-brass/30 transition-colors">
+            <div key={n.id} className="bg-surface ring-1 ring-line rounded-xl p-5 shadow-sm hover:ring-blue/30 transition-colors">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <a
                     href={n.source_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-display font-semibold text-text hover:text-brass transition-colors inline-flex items-center gap-2"
+                    className="font-display font-semibold text-navy hover:text-blue transition-colors inline-flex items-center gap-2"
                   >
                     {n.title}
                     <ExternalLink size={14} className="text-muted" />

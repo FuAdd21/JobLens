@@ -58,34 +58,34 @@ const Admin = () => {
     try {
       await api.patch(`/jobs/sources/${sourceId}/toggle`);
       await loadSources();
-    } catch (err) {
+    } catch {
       setError('Could not toggle source.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-ink px-6 md:px-12 py-10 max-w-5xl mx-auto text-text">
-      <h1 className="font-display text-2xl font-semibold mb-1">Source management</h1>
+    <div className="min-h-screen bg-page px-6 md:px-12 py-10 max-w-5xl mx-auto text-text">
+      <h1 className="font-display text-2xl font-bold text-navy mb-1">Source management</h1>
       <p className="text-muted text-sm mb-8">Discover channels, sync sources, and retire ones that aren't reliable.</p>
 
       {error && (
-        <div className="bg-brass/10 border border-brass/20 rounded-lg px-4 py-2.5 text-sm text-brass mb-6">
+        <div className="bg-magenta/10 border border-magenta/20 rounded-lg px-4 py-2.5 text-sm text-magenta mb-6">
           {error}
         </div>
       )}
 
-      <div className="bg-surface border border-white/5 rounded-2xl p-6 mb-6 flex items-center justify-between">
+      <div className="bg-surface ring-1 ring-line rounded-2xl p-6 mb-6 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <Radar size={18} className="text-brass" />
+          <Radar size={18} className="text-blue" />
           <div>
-            <h2 className="font-display font-semibold text-sm">Channel discovery</h2>
+            <h2 className="font-display font-semibold text-sm text-navy">Channel discovery</h2>
             <p className="text-xs text-muted">Finds public Telegram channels with 500+ members posting job content.</p>
           </div>
         </div>
         <button
           onClick={handleDiscover}
           disabled={discovering}
-          className="flex items-center gap-2 bg-brass text-ink text-sm font-semibold px-4 py-2 rounded-full hover:bg-brassLight transition-colors disabled:opacity-50 shrink-0"
+          className="flex items-center gap-2 bg-blue text-white text-sm font-semibold px-4 py-2 rounded-full hover:opacity-90 transition-opacity disabled:opacity-50 shrink-0"
         >
           <RefreshCw size={13} className={discovering ? 'animate-spin' : ''} />
           {discovering ? 'Searching...' : 'Discover'}
@@ -93,15 +93,15 @@ const Admin = () => {
       </div>
 
       {discoveryResult && (
-        <p className="text-xs text-signal mb-6 -mt-3">
+        <p className="text-xs text-green font-semibold mb-6 -mt-3">
           Searched {discoveryResult.searched} terms · found {discoveryResult.found} · qualified {discoveryResult.qualified} · registered {discoveryResult.registered}
         </p>
       )}
 
-      <div className="bg-surface border border-white/5 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/5 flex items-center gap-2">
-          <Globe size={16} className="text-brass" />
-          <h2 className="font-display font-semibold text-sm">Registered sources ({sources.length})</h2>
+      <div className="bg-surface ring-1 ring-line rounded-2xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-line flex items-center gap-2">
+          <Globe size={16} className="text-blue" />
+          <h2 className="font-display font-semibold text-sm text-navy">Registered sources ({sources.length})</h2>
         </div>
 
         {loadingSources ? (
@@ -111,21 +111,21 @@ const Admin = () => {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-muted text-left">
-                <th className="px-6 py-2 font-normal">Name</th>
-                <th className="px-6 py-2 font-normal">Type</th>
-                <th className="px-6 py-2 font-normal">Reliability</th>
-                <th className="px-6 py-2 font-normal">Last sync</th>
-                <th className="px-6 py-2 font-normal text-right">Actions</th>
+              <tr className="text-xs text-muted text-left bg-surface2">
+                <th className="px-6 py-2 font-semibold">Name</th>
+                <th className="px-6 py-2 font-semibold">Type</th>
+                <th className="px-6 py-2 font-semibold">Reliability</th>
+                <th className="px-6 py-2 font-semibold">Last sync</th>
+                <th className="px-6 py-2 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {sources.map((s) => (
-                <tr key={s.id} className="border-t border-white/5">
-                  <td className="px-6 py-3">{s.name}</td>
+                <tr key={s.id} className="border-t border-line">
+                  <td className="px-6 py-3 text-navy font-medium">{s.name}</td>
                   <td className="px-6 py-3 text-muted">{s.type}</td>
                   <td className="px-6 py-3">
-                    <span className={s.reliability_score >= 20 ? 'text-signal' : 'text-muted'}>
+                    <span className={s.reliability_score >= 20 ? 'text-green font-semibold' : 'text-muted'}>
                       {s.reliability_score}
                     </span>
                   </td>
@@ -138,19 +138,19 @@ const Admin = () => {
                         <button
                           onClick={() => handleSyncChannel(s.identifier, s.id)}
                           disabled={syncingId === s.id}
-                          className="text-xs bg-surface2 border border-white/10 px-2.5 py-1 rounded-full hover:border-brass/40 transition-colors disabled:opacity-50"
+                          className="text-xs bg-surface2 text-navy border border-line px-2.5 py-1 rounded-full hover:border-blue/40 transition-colors disabled:opacity-50"
                         >
                           {syncingId === s.id ? 'Syncing...' : 'Sync'}
                         </button>
                       )}
                       {syncResults[s.id] && (
-                        <span className="text-xs text-signal">+{syncResults[s.id].created}</span>
+                        <span className="text-xs text-green font-semibold">+{syncResults[s.id].created}</span>
                       )}
                       <button
                         onClick={() => handleToggle(s.id)}
                         title={s.active ? 'Deactivate' : 'Activate'}
                         className={`p-1.5 rounded-full border transition-colors ${
-                          s.active ? 'border-signal/30 text-signal' : 'border-white/10 text-muted'
+                          s.active ? 'border-green/40 text-green' : 'border-line text-muted'
                         }`}
                       >
                         <Power size={12} />
