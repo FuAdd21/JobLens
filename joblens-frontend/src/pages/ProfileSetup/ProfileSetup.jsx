@@ -1,204 +1,100 @@
-import { useState, useEffect } from 'react';
+import { Check, Plus, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import api from '../../api/client.js';
-import { Check, X, Plus } from 'lucide-react';
+
+const inputClass = 'w-full rounded-lg border border-line bg-white px-4 py-3 text-sm outline-none transition focus:border-blue';
 
 const Chip = ({ active, onClick, children }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
-      active
-        ? 'bg-brass text-ink border-brass font-semibold'
-        : 'bg-transparent text-muted border-white/10 hover:border-white/25'
-    }`}
-  >
+  <button type="button" onClick={onClick} className={`rounded-md px-3 py-2 text-xs font-bold transition ${active ? 'bg-blue text-white' : 'bg-surface2 text-muted hover:text-blue'}`}>
     {children}
   </button>
 );
 
 const Field = ({ label, children }) => (
-  <div className="mb-5">
-    <label className="text-xs text-muted mb-1.5 block">{label}</label>
+  <label className="block">
+    <span className="mb-2 block text-sm font-bold text-navy">{label}</span>
     {children}
-  </div>
+  </label>
 );
 
-const inputClass =
-  'w-full bg-ink border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-brass/50 transition-colors';
-
 const ProfileSetup = () => {
-  const [profile, setProfile] = useState({
-    profession: '',
-    educationLevel: 'BACHELOR',
-    experienceLevel: 'JUNIOR',
-    preferredLocations: '',
-    employmentTypes: [],
-    workArrangement: [],
-  });
+  const [profile, setProfile] = useState({ profession: '', educationLevel: 'BACHELOR', experienceLevel: 'JUNIOR', preferredLocations: '', employmentTypes: [], workArrangement: [] });
   const [skillInput, setSkillInput] = useState('');
   const [skills, setSkills] = useState([]);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     api.get('/profile').then(({ data }) => {
-      const p = data.data;
+      const nextProfile = data.data;
       setProfile({
-        profession: p.profession || '',
-        educationLevel: p.education_level || 'BACHELOR',
-        experienceLevel: p.experience_level || 'JUNIOR',
-        preferredLocations: (p.preferred_locations || []).join(', '),
-        employmentTypes: p.employment_types || [],
-        workArrangement: p.work_arrangement || [],
+        profession: nextProfile.profession || '',
+        educationLevel: nextProfile.education_level || 'BACHELOR',
+        experienceLevel: nextProfile.experience_level || 'JUNIOR',
+        preferredLocations: (nextProfile.preferred_locations || []).join(', '),
+        employmentTypes: nextProfile.employment_types || [],
+        workArrangement: nextProfile.work_arrangement || [],
       });
-      setSkills((p.skills || []).map((s) => s.name));
-    });
+      setSkills((nextProfile.skills || []).map((skill) => skill.name));
+    }).catch(() => setError('Could not load your profile.'));
   }, []);
 
-  const toggleArrayField = (field, value) => {
-    setProfile((prev) => ({
-      ...prev,
-      [field]: prev[field].includes(value)
-        ? prev[field].filter((v) => v !== value)
-        : [...prev[field], value],
-    }));
-  };
-
+  const toggleArrayField = (field, value) => setProfile((prev) => ({ ...prev, [field]: prev[field].includes(value) ? prev[field].filter((item) => item !== value) : [...prev[field], value] }));
   const addSkill = () => {
-    if (skillInput.trim() && !skills.includes(skillInput.trim())) {
-      setSkills([...skills, skillInput.trim()]);
+    const nextSkill = skillInput.trim();
+    if (nextSkill && !skills.some((skill) => skill.toLowerCase() === nextSkill.toLowerCase())) {
+      setSkills([...skills, nextSkill]);
       setSkillInput('');
     }
   };
+  const removeSkill = (skill) => setSkills(skills.filter((item) => item !== skill));
 
-  const removeSkill = (skill) => setSkills(skills.filter((s) => s !== skill));
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    await api.put('/profile', {
-      profession: profile.profession,
-      educationLevel: profile.educationLevel,
-      experienceLevel: profile.experienceLevel,
-      preferredLocations: profile.preferredLocations.split(',').map((s) => s.trim()).filter(Boolean),
-      employmentTypes: profile.employmentTypes,
-      workArrangement: profile.workArrangement,
-    });
-    await api.put('/profile/skills', {
-      skills: skills.map((name) => ({ name, proficiencyLevel: 'INTERMEDIATE' })),
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handleSave = async (event) => {
+    event.preventDefault();
+    setError('');
+    try {
+      await api.put('/profile', {
+        profession: profile.profession,
+        educationLevel: profile.educationLevel,
+        experienceLevel: profile.experienceLevel,
+        preferredLocations: profile.preferredLocations.split(',').map((item) => item.trim()).filter(Boolean),
+        employmentTypes: profile.employmentTypes,
+        workArrangement: profile.workArrangement,
+      });
+      await api.put('/profile/skills', { skills: skills.map((name) => ({ name, proficiencyLevel: 'INTERMEDIATE' })) });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not save profile.');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-ink px-6 md:px-12 py-10 flex justify-center">
-      <form onSubmit={handleSave} className="w-full max-w-xl bg-surface border border-white/5 rounded-2xl p-8">
-        <h1 className="font-display text-2xl font-semibold mb-1">Your profile</h1>
-        <p className="text-muted text-sm mb-8">
-          This is what JobLens reads to find your matches — the more specific, the sharper the results.
-        </p>
-
-        <Field label="Profession / degree studied">
-          <input
-            placeholder="e.g. Applied Biology"
-            value={profile.profession}
-            onChange={(e) => setProfile({ ...profile, profession: e.target.value })}
-            className={inputClass}
-          />
-        </Field>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Education level">
-            <select
-              value={profile.educationLevel}
-              onChange={(e) => setProfile({ ...profile, educationLevel: e.target.value })}
-              className={inputClass}
-            >
-              <option value="DIPLOMA">Diploma</option>
-              <option value="BACHELOR">Bachelor's</option>
-              <option value="MASTER">Master's</option>
-              <option value="PHD">PhD</option>
-            </select>
-          </Field>
-          <Field label="Experience level">
-            <select
-              value={profile.experienceLevel}
-              onChange={(e) => setProfile({ ...profile, experienceLevel: e.target.value })}
-              className={inputClass}
-            >
-              <option value="INTERNSHIP">Internship</option>
-              <option value="JUNIOR">Junior</option>
-              <option value="MID">Mid-level</option>
-              <option value="SENIOR">Senior</option>
-            </select>
-          </Field>
+    <main className="min-h-screen bg-page px-4 py-8">
+      <form onSubmit={handleSave} className="mx-auto max-w-3xl rounded-lg bg-surface p-8 shadow-sm ring-1 ring-line">
+        <h1 className="text-2xl font-extrabold text-navy">Your profile</h1>
+        <p className="mt-1 text-sm text-muted">JobLens uses this to rank fresh openings against your profession and skills.</p>
+        {error && <p className="mt-5 rounded-lg border border-magenta/20 bg-magenta/10 px-4 py-3 text-sm text-magenta">{error}</p>}
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
+          <div className="md:col-span-2"><Field label="Profession / degree studied"><input className={inputClass} value={profile.profession} onChange={(event) => setProfile({ ...profile, profession: event.target.value })} placeholder="e.g. Applied Biology" /></Field></div>
+          <Field label="Education level"><select className={inputClass} value={profile.educationLevel} onChange={(event) => setProfile({ ...profile, educationLevel: event.target.value })}><option value="DIPLOMA">Diploma</option><option value="BACHELOR">Bachelor's</option><option value="MASTER">Master's</option><option value="PHD">PhD</option></select></Field>
+          <Field label="Experience level"><select className={inputClass} value={profile.experienceLevel} onChange={(event) => setProfile({ ...profile, experienceLevel: event.target.value })}><option value="INTERNSHIP">Internship</option><option value="JUNIOR">Junior</option><option value="MID">Mid-level</option><option value="SENIOR">Senior</option></select></Field>
+          <div className="md:col-span-2"><Field label="Preferred locations"><input className={inputClass} value={profile.preferredLocations} onChange={(event) => setProfile({ ...profile, preferredLocations: event.target.value })} placeholder="Addis Ababa, Remote" /></Field></div>
         </div>
-
-        <Field label="Preferred locations">
-          <input
-            placeholder="Addis Ababa, Remote"
-            value={profile.preferredLocations}
-            onChange={(e) => setProfile({ ...profile, preferredLocations: e.target.value })}
-            className={inputClass}
-          />
-        </Field>
-
-        <Field label="Employment types">
-          <div className="flex flex-wrap gap-2">
-            {['FULL_TIME', 'PART_TIME', 'INTERNSHIP', 'CONTRACT'].map((type) => (
-              <Chip key={type} active={profile.employmentTypes.includes(type)} onClick={() => toggleArrayField('employmentTypes', type)}>
-                {type.replace('_', ' ')}
-              </Chip>
-            ))}
-          </div>
-        </Field>
-
-        <Field label="Work arrangement">
-          <div className="flex flex-wrap gap-2">
-            {['REMOTE', 'HYBRID', 'ONSITE'].map((type) => (
-              <Chip key={type} active={profile.workArrangement.includes(type)} onClick={() => toggleArrayField('workArrangement', type)}>
-                {type}
-              </Chip>
-            ))}
-          </div>
-        </Field>
-
-        <Field label="Skills">
-          <div className="flex gap-2 mb-3">
-            <input
-              placeholder="e.g. Microbiology"
-              value={skillInput}
-              onChange={(e) => setSkillInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-              className={inputClass}
-            />
-            <button
-              type="button"
-              onClick={addSkill}
-              className="shrink-0 bg-surface2 border border-white/10 rounded-lg px-3 hover:border-brass/40 transition-colors"
-            >
-              <Plus size={16} />
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill) => (
-              <span key={skill} className="flex items-center gap-1.5 bg-surface2 text-xs px-3 py-1.5 rounded-full">
-                {skill}
-                <button type="button" onClick={() => removeSkill(skill)} className="text-muted hover:text-brass">
-                  <X size={12} />
-                </button>
-              </span>
-            ))}
-          </div>
-        </Field>
-
-        <button
-          type="submit"
-          className="w-full flex items-center justify-center gap-2 bg-brass text-ink font-semibold py-2.5 rounded-lg hover:bg-brassLight transition-colors mt-2"
-        >
-          {saved ? <><Check size={15} /> Saved</> : 'Save profile'}
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <section><p className="mb-3 text-sm font-bold text-navy">Employment types</p><div className="flex flex-wrap gap-2">{['FULL_TIME', 'PART_TIME', 'INTERNSHIP', 'CONTRACT'].map((type) => <Chip key={type} active={profile.employmentTypes.includes(type)} onClick={() => toggleArrayField('employmentTypes', type)}>{type.replace('_', ' ')}</Chip>)}</div></section>
+          <section><p className="mb-3 text-sm font-bold text-navy">Work arrangement</p><div className="flex flex-wrap gap-2">{['REMOTE', 'HYBRID', 'ONSITE'].map((type) => <Chip key={type} active={profile.workArrangement.includes(type)} onClick={() => toggleArrayField('workArrangement', type)}>{type}</Chip>)}</div></section>
+        </div>
+        <section className="mt-6">
+          <p className="mb-3 text-sm font-bold text-navy">Skills</p>
+          <div className="flex gap-2"><input className={inputClass} value={skillInput} onChange={(event) => setSkillInput(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && (event.preventDefault(), addSkill())} placeholder="e.g. Data analysis" /><button type="button" onClick={addSkill} className="rounded-lg bg-blue px-4 text-white"><Plus size={18} /></button></div>
+          <div className="mt-3 flex flex-wrap gap-2">{skills.map((skill) => <span key={skill} className="inline-flex items-center gap-2 rounded-md bg-surface2 px-3 py-2 text-xs font-semibold text-muted">{skill}<button type="button" onClick={() => removeSkill(skill)} className="text-muted hover:text-magenta"><X size={13} /></button></span>)}</div>
+        </section>
+        <button type="submit" className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg bg-blue px-5 py-3 text-sm font-extrabold text-white">
+          {saved ? <><Check size={16} /> Saved</> : 'Save profile'}
         </button>
       </form>
-    </div>
+    </main>
   );
 };
 

@@ -3,14 +3,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: '#0E1420',
-        surface: '#161F30',
-        surface2: '#1D2740',
-        brass: '#C99A3E',
-        brassLight: '#E0B85C',
-        signal: '#3FBF9F',
-        text: '#F2F4F8',
-        muted: '#8A94A6',
+        page: '#F7F8FA',
+        skywash: '#EAF6FB',
+        surface: '#FFFFFF',
+        surface2: '#F1F4F8',
+        navy: '#241D45',
+        text: '#1F2937',
+        muted: '#6B7280',
+        line: '#E5E7EB',
+        blue: '#2F6FED',
+        blueSoft: '#EAF1FF',
+        magenta: '#E8437A',
+        orange: '#F4793B',
+        green: '#7ED957',
       },
       fontFamily: {
         display: ['"Space Grotesk"', 'sans-serif'],

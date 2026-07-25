@@ -1,7 +1,9 @@
+import { ArrowRight, BriefcaseBusiness, Check } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext/AuthContext.jsx';
-import { ArrowRight, Check } from 'lucide-react';
+
+const inputClass = 'w-full rounded-lg border border-line bg-white px-4 py-3 text-sm outline-none transition focus:border-blue';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -11,8 +13,8 @@ const Register = () => {
   const { register, loading } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
     const result = await register(email, password);
     if (result.success) {
@@ -24,60 +26,26 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ink flex items-center justify-center px-6">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm bg-surface border border-white/5 rounded-2xl p-8">
-        <Link to="/" className="font-display font-semibold text-lg tracking-tight block mb-8">
-          Job<span className="text-brass">Lens</span>
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-skywash to-page px-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-2xl bg-surface p-8 shadow-xl ring-1 ring-line">
+        <Link to="/" className="mb-8 flex items-center gap-3 text-navy">
+          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-blue text-white"><BriefcaseBusiness size={20} /></span>
+          <span className="text-xl font-extrabold">JobLens</span>
         </Link>
-        <h1 className="font-display text-2xl font-semibold mb-1">Create your account</h1>
-        <p className="text-muted text-sm mb-6">Two minutes, then JobLens starts scanning for you.</p>
-
-        {error && (
-          <p className="text-sm text-brass bg-brass/10 border border-brass/20 rounded-lg px-3 py-2 mb-4">
-            {error}
-          </p>
-        )}
-        {success && (
-          <p className="flex items-center gap-2 text-sm text-signal bg-signal/10 border border-signal/20 rounded-lg px-3 py-2 mb-4">
-            <Check size={14} /> Account created. Redirecting to login...
-          </p>
-        )}
-
-        <label className="text-xs text-muted mb-1 block">Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full bg-ink border border-white/10 rounded-lg px-3 py-2.5 text-sm mb-4 focus:outline-none focus:border-brass/50 transition-colors"
-        />
-
-        <label className="text-xs text-muted mb-1 block">Password</label>
-        <input
-          type="password"
-          placeholder="Min 8 characters, 1 number"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full bg-ink border border-white/10 rounded-lg px-3 py-2.5 text-sm mb-6 focus:outline-none focus:border-brass/50 transition-colors placeholder:text-muted/50"
-        />
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-brass text-ink font-semibold py-2.5 rounded-lg hover:bg-brassLight transition-colors disabled:opacity-50"
-        >
-          {loading ? 'Creating...' : 'Register'} {!loading && <ArrowRight size={15} />}
+        <h1 className="text-2xl font-extrabold text-navy">Create your account</h1>
+        <p className="mt-1 text-sm text-muted">Set your profile once, then let JobLens scan for you.</p>
+        {error && <p className="mt-5 rounded-lg border border-magenta/20 bg-magenta/10 px-4 py-3 text-sm text-magenta">{error}</p>}
+        {success && <p className="mt-5 flex items-center gap-2 rounded-lg border border-blue/20 bg-blueSoft px-4 py-3 text-sm font-semibold text-blue"><Check size={15} /> Account created. Redirecting...</p>}
+        <label className="mt-6 block text-sm font-bold text-navy">Email</label>
+        <input className={`${inputClass} mt-2`} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+        <label className="mt-4 block text-sm font-bold text-navy">Password</label>
+        <input className={`${inputClass} mt-2`} type="password" placeholder="Min 8 characters, 1 number" value={password} onChange={(event) => setPassword(event.target.value)} required />
+        <button type="submit" disabled={loading} className="mt-7 flex w-full items-center justify-center gap-2 rounded-lg bg-blue px-5 py-3 text-sm font-extrabold text-white disabled:opacity-60">
+          {loading ? 'Creating...' : 'Sign up'} {!loading && <ArrowRight size={16} />}
         </button>
-
-        <p className="text-sm text-muted text-center mt-5">
-          Already have an account?{' '}
-          <Link to="/login" className="text-brass hover:text-brassLight">
-            Log in
-          </Link>
-        </p>
+        <p className="mt-5 text-center text-sm text-muted">Already registered? <Link to="/login" className="font-bold text-blue">Log in</Link></p>
       </form>
-    </div>
+    </main>
   );
 };
 

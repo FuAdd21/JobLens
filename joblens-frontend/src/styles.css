@@ -1,10 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 body {
-  background: #0E1420;
-  color: #F2F4F8;
+  background: #F7F8FA;
+  color: #1F2937;
   font-family: 'Inter', sans-serif;
+}
+
+* {
+  letter-spacing: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
