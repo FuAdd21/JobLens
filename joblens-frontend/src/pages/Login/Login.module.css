@@ -1,0 +1,233 @@
+/* JobLens Sign In -- matches the provided auth screenshot, same
+   "Architectural Minimalist" system as the landing page (see DESIGN.md). */
+
+.page {
+  --primary: #0b0f1a;
+  --secondary: #006c49;
+  --secondary-light: #16a878;
+  --surface: #f7f8fb;
+  --card: #ffffff;
+  --on-surface: #1a1c1c;
+  --on-surface-variant: #5c5f66;
+  --outline-variant: #e2e4e9;
+  --danger-bg: #ffdad6;
+  --danger-text: #93000a;
+
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: var(--surface);
+  padding: 24px;
+  font-family: 'Inter', sans-serif;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.brandMark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--primary);
+}
+
+.brandMark .icon {
+  font-size: 18px;
+  color: var(--secondary-light);
+}
+
+.brandWordmark {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.brandJob {
+  color: var(--on-surface);
+}
+
+.brandLens {
+  color: var(--secondary);
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--outline-variant);
+  box-shadow: 0px 12px 32px rgba(15, 23, 42, 0.06);
+  padding: 32px;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--on-surface);
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--on-surface-variant);
+}
+
+.errorBox {
+  margin-top: 20px;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+.successBox {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: rgba(0, 108, 73, 0.08);
+  color: var(--secondary);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.fieldRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.fieldRow:first-of-type {
+  margin-top: 24px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.forgotLink {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--secondary);
+  text-decoration: none;
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
+}
+
+.inputWrap {
+  position: relative;
+  margin-top: 8px;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 1px solid var(--outline-variant);
+  background: var(--card);
+  padding: 12px 44px 12px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--on-surface);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.input:focus {
+  border-color: var(--primary);
+}
+
+.inputAdorn {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dotsIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--outline-variant);
+  color: var(--on-surface-variant);
+  font-size: 16px;
+}
+
+.eyeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.submitBtn {
+  width: 100%;
+  margin-top: 28px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #ffffff;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submitBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.footerText {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--on-surface-variant);
+}
+
+.footerLink {
+  color: var(--secondary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
+}
