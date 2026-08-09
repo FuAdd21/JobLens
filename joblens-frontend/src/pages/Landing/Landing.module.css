@@ -1,0 +1,396 @@
+/* ---------- Tokens (scoped to this file via :root is unnecessary since
+   CSS Modules already scope class names -- using local custom properties
+   on .page keeps everything readable without leaking globally). ---------- */
+.page {
+  --primary: #000000;
+  --on-primary: #ffffff;
+  --secondary: #006c49;
+  --surface: #f9f9f9;
+  --on-surface: #1a1c1c;
+  --on-surface-variant: #45464d;
+  --outline: #76777d;
+  --outline-variant: #c6c6cd;
+  --surface-container-low: #f3f3f4;
+
+  --space-base: 4px;
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 40px;
+  --space-xl: 64px;
+  --space-gutter: 24px;
+  --container-max: 1280px;
+
+  --radius-btn: 0.125rem;
+  --radius-card: 0.5rem;
+
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: 'Inter', sans-serif;
+}
+
+/* ---------- Nav ---------- */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 64px;
+  padding: 0 var(--space-gutter);
+  background: rgba(249, 249, 249, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.navLogo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  text-decoration: none;
+}
+
+.navLogoIcon {
+  font-size: 24px;
+  color: var(--secondary);
+}
+
+.navLogoText {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+  color: var(--primary);
+}
+
+.navLinks {
+  display: none;
+  gap: var(--space-lg);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  color: var(--on-surface-variant);
+}
+
+.navLinks a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.15s ease;
+}
+
+.navLinks a:hover {
+  color: var(--primary);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.loginLink {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  color: var(--primary);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.loginLink:hover {
+  opacity: 0.8;
+}
+
+.getStartedNav {
+  border-radius: var(--radius-btn);
+  background: var(--primary);
+  color: var(--on-primary);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.getStartedNav:hover {
+  opacity: 0.9;
+}
+
+/* ---------- Main / Hero ---------- */
+.main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xl);
+  width: 100%;
+  max-width: var(--container-max);
+  margin-top: var(--space-lg);
+  padding: var(--space-xl) var(--space-gutter);
+}
+
+.heroLeft {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.heroHeadline {
+  max-width: 42rem;
+  margin: 0;
+  color: var(--primary);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+
+.heroDescription {
+  max-width: 36rem;
+  margin: 0;
+  color: var(--on-surface-variant);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 28px;
+}
+
+.heroActions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.primaryBtn {
+  border-radius: var(--radius-btn);
+  background: var(--primary);
+  color: var(--on-primary);
+  padding: var(--space-sm) var(--space-lg);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
+  transition: opacity 0.15s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.primaryBtn:hover {
+  opacity: 0.9;
+}
+
+.secondaryBtn {
+  border-radius: var(--radius-btn);
+  border: 1px solid var(--outline);
+  background: transparent;
+  color: var(--primary);
+  padding: var(--space-sm) var(--space-lg);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+.secondaryBtn:hover {
+  background: var(--surface-container-low);
+}
+
+.heroNote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+  color: var(--on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+}
+
+.heroNoteIcon {
+  font-size: 16px;
+  color: var(--secondary);
+}
+
+.heroImageWrap {
+  position: relative;
+  width: 100%;
+  flex: 1 1 0%;
+  aspect-ratio: 1 / 1;
+}
+
+.heroImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--outline-variant);
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* ---------- Value prop section ---------- */
+.valueSection {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-top: var(--space-xl);
+  padding: var(--space-xl) var(--space-gutter);
+}
+
+.valueGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+}
+
+.valueCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--outline-variant);
+}
+
+.valueIconBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-btn);
+  background: var(--surface-container-low);
+  color: var(--primary);
+}
+
+.valueIconBox[data-accent="secondary"] {
+  color: var(--secondary);
+}
+
+.valueIconBox .icon {
+  font-size: 24px;
+}
+
+.valueTitle {
+  margin: 0;
+  color: var(--primary);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+
+.valueDescription {
+  margin: 0;
+  color: var(--on-surface-variant);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  width: 100%;
+  margin-top: var(--space-xl);
+  padding: var(--space-lg) 0;
+  border-top: 1px solid var(--outline-variant);
+  background: var(--surface);
+}
+
+.footerInner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--space-gutter);
+}
+
+.footerBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.footerBrandIcon {
+  font-size: 20px;
+  color: var(--secondary);
+}
+
+.footerBrandText {
+  color: var(--on-surface-variant);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+}
+
+.footerLinks {
+  display: flex;
+  gap: var(--space-md);
+  color: var(--on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+}
+
+.footerLinks a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footerLinks a:hover {
+  color: var(--primary);
+}
+
+/* ---------- Responsive ---------- */
+@media (min-width: 768px) {
+  .navLinks {
+    display: flex;
+  }
+
+  .hero {
+    flex-direction: row;
+  }
+
+  .heroHeadline {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 48px;
+    letter-spacing: -0.02em;
+  }
+
+  .heroImageWrap {
+    aspect-ratio: auto;
+    height: 500px;
+  }
+
+  .valueGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
