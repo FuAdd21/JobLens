@@ -149,7 +149,7 @@ export const computeMatchesForUser = async (userId, limit = 30) => {
 export const getStoredMatches = async (userId, limit = 20) => {
   const { rows } = await query(
     `SELECT m.similarity_score, m.skill_overlap_score, m.final_score, m.created_at,
-            j.id, j.title, j.location, j.employment_type, j.source_url, j.deadline_at,
+            j.id, j.title, j.skills, j.location, j.employment_type, j.source_url, j.deadline_at,
             o.name as organization_name
      FROM matches m
      JOIN jobs j ON j.id = m.job_id
