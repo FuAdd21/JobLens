@@ -1,61 +1,70 @@
-import { ArrowUpRight, BriefcaseBusiness, Calendar, Clock3, MapPin, UsersRound } from 'lucide-react';
+import styles from './JobCard.module.css';
 
-const formatType = (value) => (value ? value.replaceAll('_', ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase()) : 'Flexible');
+const formatType = (value) => (value ? value.replaceAll('_', ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase()) : null);
 
 const JobCard = ({ match }) => {
-  const scorePercent = Math.round(Number(match.final_score || match.finalScore || 0) * 100);
-  const tags = [formatType(match.employment_type), match.experience_level || 'Matched', match.work_arrangement || 'Open'];
+  const scorePercent = Math.round(Number(match.final_score ?? match.finalScore ?? 0) * 100);
+  const similarityPercent = Math.round(Number(match.similarity_score ?? match.similarity ?? 0) * 100);
+  const skillOverlapPercent = Math.round(Number(match.skill_overlap_score ?? match.skillScore ?? 0) * 100);
+
+  // Real skill tags from the job posting -- never invented.
+  const skillTags = Array.isArray(match.skills) ? match.skills.slice(0, 4) : [];
+  const employmentTag = formatType(match.employment_type);
 
   return (
-    <article className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-line transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex items-start gap-3">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blueSoft text-blue">
-          <BriefcaseBusiness size={24} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="line-clamp-1 text-base font-bold text-navy">{match.title}</h3>
-            <span className="shrink-0 rounded-md bg-blueSoft px-2 py-1 text-xs font-bold text-blue">{scorePercent}%</span>
-          </div>
-          <p className="mt-1 flex items-center gap-1 text-xs font-medium text-muted">
-            <MapPin size={13} /> {match.location || 'Location not listed'}
+    <a
+      href={match.source_url || '#'}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={styles.card}
+    >
+      <div className={styles.head}>
+        <div>
+          <h4 className={styles.title}>{match.title}</h4>
+          <p className={styles.meta}>
+            {match.organization_name || 'Unlisted organization'}
+            {match.location ? ` • ${match.location}` : ''}
           </p>
+        </div>
+        <div className={styles.scoreWrap}>
+          <div className={styles.scoreCircle}>
+            <span className={styles.scoreText}>{scorePercent}%</span>
+          </div>
+          <span className={styles.scoreLabel}>Match</span>
         </div>
       </div>
 
-      <p className="mt-4 line-clamp-2 text-sm leading-6 text-muted">
-        {match.organization_name || 'Verified JobLens source'} is hiring for this role. JobLens matched it against your profile, skills, and recent active postings.
-      </p>
+      {/* AI Insight -- built entirely from real returned numbers (semantic similarity +
+          skill overlap already computed by the matching engine). No narrative text is
+          invented here since that would misrepresent fabricated copy as real AI analysis. */}
+      <div className={styles.insightBox}>
+        <p className={styles.insightText}>
+          <span className={styles.insightLabel}>AI Insight: </span>
+          {similarityPercent}% semantic match on your profile, with {skillOverlapPercent}% direct skill overlap.
+        </p>
+      </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <span key={tag} className="rounded-md bg-surface2 px-3 py-1 text-xs font-semibold text-muted">
-            {tag}
-          </span>
+      <div className={styles.tags}>
+        {employmentTag && <span className={styles.tag}>{employmentTag}</span>}
+        {skillTags.map((skill) => (
+          <span key={skill} className={styles.tag}>{skill}</span>
         ))}
+        {!employmentTag && skillTags.length === 0 && (
+          <span className={styles.tag}>Details in posting</span>
+        )}
       </div>
 
-      <div className="mt-5 flex items-center justify-between gap-3 text-xs text-muted">
-        <span className="flex items-center gap-1">
-          <Calendar size={13} />
-          {match.deadline_at ? new Date(match.deadline_at).toLocaleDateString() : 'Deadline open'}
+      <div className={styles.footRow}>
+        <span>
+          <span className={`material-symbols-outlined ${styles.icon}`}>calendar_today</span>
+          {match.deadline_at ? new Date(match.deadline_at).toLocaleDateString() : 'Open'}
         </span>
-        <span className="hidden items-center gap-1 sm:flex">
-          <UsersRound size={13} /> Match found
+        <span className={styles.applyLink}>
+          Apply
+          <span className={`material-symbols-outlined ${styles.icon}`} style={{ fontSize: 14 }}>arrow_outward</span>
         </span>
-        <span className="hidden items-center gap-1 sm:flex">
-          <Clock3 size={13} /> Recent
-        </span>
-        <a
-          href={match.source_url || '#'}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="ml-auto inline-flex items-center gap-1 rounded-md bg-blue px-3 py-2 text-xs font-bold text-white hover:bg-blue/90"
-        >
-          Apply <ArrowUpRight size={13} />
-        </a>
       </div>
-    </article>
+    </a>
   );
 };
 

@@ -1,29 +1,41 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BriefcaseBusiness, MapPin, RefreshCw, SlidersHorizontal, Telescope } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import api from '../../api/client.js';
+import { useAuth } from '../../context/AuthContext/AuthContext.jsx';
+import Sidebar from '../../components/Sidebar/Sidebar.jsx';
 import JobCard from '../../components/JobCard/JobCard.jsx';
+import styles from './Dashboard.module.css';
 
-const CheckRow = ({ label, checked, onChange }) => (
-  <label className="flex items-center gap-2 text-sm text-text">
-    <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 rounded border-line text-blue accent-blue" />
-    {label}
-  </label>
-);
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+};
+
+// No "name" field exists anywhere in the current data model (profile has no display
+// name, onboarding's Full Name field is local-only/unpersisted -- see ProfileSetup).
+// Deriving a first name from the real logged-in email is honest and non-fabricated;
+// worth revisiting once a real name field exists on the backend.
+const deriveName = (email) => {
+  if (!email) return '';
+  const local = email.split('@')[0];
+  return local.charAt(0).toUpperCase() + local.slice(1);
+};
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [matches, setMatches] = useState([]);
-  const [profile, setProfile] = useState(null);
+  const [keyword, setKeyword] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filters, setFilters] = useState({ keyword: '', location: '', minScore: 50, types: [], arrangements: [] });
   const [error, setError] = useState('');
 
-  const loadData = async () => {
+  const loadMatches = async () => {
     setLoading(true);
     try {
-      const [matchesResponse, profileResponse] = await Promise.all([api.get('/matches'), api.get('/profile')]);
-      setMatches(matchesResponse.data.data || []);
-      setProfile(profileResponse.data.data || null);
+      const { data } = await api.get('/matches');
+      setMatches(data.data || []);
     } catch {
       setError('Matches could not load. Complete your profile, then refresh.');
     } finally {
@@ -32,22 +44,15 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    loadData();
+    loadMatches();
   }, []);
-
-  const toggleFilter = (group, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [group]: prev[group].includes(value) ? prev[group].filter((item) => item !== value) : [...prev[group], value],
-    }));
-  };
 
   const refreshMatches = async () => {
     setRefreshing(true);
     setError('');
     try {
       const { data } = await api.post('/matches/refresh');
-      setMatches((data.data || []).map((match) => ({ ...match, final_score: match.finalScore || match.final_score })));
+      setMatches((data.data || []).map((m) => ({ ...m, final_score: m.finalScore ?? m.final_score })));
     } catch (err) {
       setError(err.response?.data?.message || 'Refresh failed. Complete your profile first.');
     } finally {
@@ -55,121 +60,136 @@ const Dashboard = () => {
     }
   };
 
+  // Existing filtering logic preserved, now driven by the header search box
+  // instead of a dedicated filter sidebar (Stitch's dashboard screen has no
+  // filter panel -- that capability belongs on the not-yet-built Discover page,
+  // per the sidebar's own information architecture).
   const filteredMatches = useMemo(() => {
-    return matches.filter((match) => {
-      const score = Number(match.final_score || match.finalScore || 0) * 100;
-      const keywordMatch = !filters.keyword || `${match.title} ${match.organization_name || ''}`.toLowerCase().includes(filters.keyword.toLowerCase());
-      const locationMatch = !filters.location || (match.location || '').toLowerCase().includes(filters.location.toLowerCase());
-      const typeMatch = filters.types.length === 0 || filters.types.includes(match.employment_type);
-      const arrangementMatch = filters.arrangements.length === 0 || filters.arrangements.some((item) => `${match.work_arrangement || ''}`.toUpperCase().includes(item));
-      return score >= filters.minScore && keywordMatch && locationMatch && typeMatch && arrangementMatch;
-    });
-  }, [filters, matches]);
+    if (!keyword.trim()) return matches;
+    const q = keyword.toLowerCase();
+    return matches.filter((m) => `${m.title} ${m.organization_name || ''}`.toLowerCase().includes(q));
+  }, [keyword, matches]);
 
-  const skills = profile?.skills || [];
+  // "New" = matches computed in the last 24h, using the real created_at timestamp
+  // already returned by the API -- not an invented number.
+  const newCount = useMemo(() => {
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    return matches.filter((m) => m.created_at && new Date(m.created_at).getTime() >= cutoff).length;
+  }, [matches]);
+
+  const name = deriveName(user?.email);
+  const initial = (name || 'J').charAt(0).toUpperCase();
 
   return (
-    <main className="min-h-screen bg-page px-4 py-5 lg:px-8">
-      <div className="mx-auto grid max-w-[1440px] gap-6 lg:grid-cols-[250px_minmax(0,1fr)_290px]">
-        <aside className="rounded-lg bg-surface p-5 shadow-sm ring-1 ring-line">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="font-bold text-navy">Filters</h2>
-            <button onClick={() => setFilters({ keyword: '', location: '', minScore: 50, types: [], arrangements: [] })} className="text-xs font-semibold text-blue">
-              Clear all
-            </button>
+    <div className={styles.page}>
+      <Sidebar />
+
+      <div className={styles.contentWrap}>
+        {/* Mobile header (Stitch shows this only below md) */}
+        <header className={styles.headerMobile}>
+          <span className={styles.headerLogo}>JobLens</span>
+          <div className={styles.headerActions}>
+            <Link to="/notifications" className={styles.iconBtn} title="Notifications">
+              <span className="material-symbols-outlined">notifications</span>
+            </Link>
+            <Link to="/profile" className={styles.avatar}>{initial}</Link>
           </div>
-          <div className="space-y-5">
+        </header>
+
+        {/* Desktop header */}
+        <header className={styles.header}>
+          <div className={styles.searchBox}>
+            <span className={`material-symbols-outlined ${styles.icon}`}>search</span>
+            <input
+              placeholder="Search jobs, skills, companies..."
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+            />
+          </div>
+          <div className={styles.headerActions}>
+            <Link to="/notifications" className={styles.iconBtn} title="Notifications">
+              <span className="material-symbols-outlined">notifications</span>
+              <span className={styles.iconDot} />
+            </Link>
+            {/* No help center exists yet -- decorative, matching Stitch's own icon slot. */}
+            <button type="button" className={styles.iconBtn} title="Help">
+              <span className="material-symbols-outlined">help</span>
+            </button>
+            <Link to="/profile" className={styles.avatar} title="Profile">{initial}</Link>
+          </div>
+        </header>
+
+        <main className={styles.main}>
+          <div className={styles.canvas}>
+            <section className={styles.greetingSection}>
+              <h2 className={styles.greeting}>{getGreeting()}{name ? `, ${name}.` : '.'}</h2>
+              <p className={styles.greetingSub}>Here is your career trajectory overview for today.</p>
+            </section>
+
+            {/* Stat cards -- Recommended is 100% real data. Saved/Applications have no
+                backend concept yet (no saved-jobs or application-tracking tables exist),
+                so they're shown honestly at 0 rather than the mocked 14/7 from Stitch,
+                with a "Soon" flag matching the sidebar's own treatment of those features. */}
+            <section className={styles.statGrid}>
+              <div className={styles.statCard}>
+                <div className={styles.statHead}>
+                  <span className={`material-symbols-outlined ${styles.statIconAccent}`}>insights</span>
+                  {newCount > 0 && <span className={styles.statBadge}>+{newCount} new</span>}
+                </div>
+                <h3 className={styles.statLabel}>Recommended</h3>
+                <p className={styles.statValue}>{matches.length}</p>
+              </div>
+              <div className={styles.statCard}>
+                <div className={styles.statHead}>
+                  <span className={`material-symbols-outlined ${styles.statIcon}`}>bookmark</span>
+                  <span className={`${styles.statBadge} ${styles.statBadgeNeutral}`}>Soon</span>
+                </div>
+                <h3 className={styles.statLabel}>Saved</h3>
+                <p className={styles.statValue}>0</p>
+              </div>
+              <div className={styles.statCard}>
+                <div className={styles.statHead}>
+                  <span className={`material-symbols-outlined ${styles.statIcon}`}>send</span>
+                  <span className={`${styles.statBadge} ${styles.statBadgeNeutral}`}>Soon</span>
+                </div>
+                <h3 className={styles.statLabel}>Applications</h3>
+                <p className={styles.statValue}>0</p>
+              </div>
+            </section>
+
             <section>
-              <p className="mb-3 text-sm font-bold text-navy">Employment Type</p>
-              <div className="space-y-2">
-                {['FULL_TIME', 'PART_TIME', 'INTERNSHIP', 'CONTRACT'].map((type) => (
-                  <CheckRow key={type} label={type.replace('_', ' ')} checked={filters.types.includes(type)} onChange={() => toggleFilter('types', type)} />
-                ))}
+              <div className={styles.sectionHead}>
+                <h3 className={styles.sectionTitle}>Recommended For You</h3>
+                <button type="button" className={styles.refreshBtn} onClick={refreshMatches} disabled={refreshing}>
+                  <span className={`material-symbols-outlined ${refreshing ? styles.spin : ''}`} style={{ fontSize: 16 }}>refresh</span>
+                  {refreshing ? 'Scanning...' : 'Refresh'}
+                </button>
               </div>
+
+              {error && <div className={styles.errorBox}>{error}</div>}
+
+              {loading ? (
+                <div className={styles.list}>
+                  {Array.from({ length: 3 }).map((_, i) => <div key={i} className={styles.skeleton} />)}
+                </div>
+              ) : filteredMatches.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <span className={`material-symbols-outlined ${styles.icon}`}>travel_explore</span>
+                  <p className={styles.emptyTitle}>Nothing in focus yet</p>
+                  <p>Complete your profile and refresh to find matches.</p>
+                </div>
+              ) : (
+                <div className={styles.list}>
+                  {filteredMatches.map((match) => (
+                    <JobCard key={match.id || match.job_id} match={match} />
+                  ))}
+                </div>
+              )}
             </section>
-            <section className="border-t border-line pt-5">
-              <p className="mb-3 text-sm font-bold text-navy">Work Arrangement</p>
-              <div className="space-y-2">
-                {['ONSITE', 'HYBRID', 'REMOTE'].map((type) => (
-                  <CheckRow key={type} label={type[0] + type.slice(1).toLowerCase()} checked={filters.arrangements.includes(type)} onChange={() => toggleFilter('arrangements', type)} />
-                ))}
-              </div>
-            </section>
-            <section className="border-t border-line pt-5">
-              <p className="mb-3 text-sm font-bold text-navy">Minimum Match Score</p>
-              <input type="range" min="0" max="100" value={filters.minScore} onChange={(e) => setFilters({ ...filters, minScore: Number(e.target.value) })} className="w-full accent-blue" />
-              <div className="mt-1 flex justify-between text-xs font-semibold text-muted">
-                <span>0%</span>
-                <span>{filters.minScore}%</span>
-                <span>100%</span>
-              </div>
-            </section>
           </div>
-        </aside>
-
-        <section>
-          <div className="mb-5 grid gap-4 md:grid-cols-2">
-            <label className="flex items-center gap-3 rounded-lg bg-surface px-4 py-3 shadow-sm ring-1 ring-line">
-              <BriefcaseBusiness size={18} className="text-muted" />
-              <input value={filters.keyword} onChange={(e) => setFilters({ ...filters, keyword: e.target.value })} placeholder="Search job title or organization" className="w-full bg-transparent text-sm outline-none placeholder:text-muted" />
-            </label>
-            <label className="flex items-center gap-3 rounded-lg bg-surface px-4 py-3 shadow-sm ring-1 ring-line">
-              <MapPin size={18} className="text-muted" />
-              <input value={filters.location} onChange={(e) => setFilters({ ...filters, location: e.target.value })} placeholder="Location" className="w-full bg-transparent text-sm outline-none placeholder:text-muted" />
-            </label>
-          </div>
-
-          <div className="mb-5 flex items-center justify-between">
-            <p className="text-sm font-semibold text-muted">{filteredMatches.length} matched jobs</p>
-            <button onClick={refreshMatches} disabled={refreshing} className="inline-flex items-center gap-2 rounded-md bg-blue px-4 py-2 text-sm font-bold text-white disabled:opacity-60">
-              <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} /> {refreshing ? 'Scanning' : 'Refresh'}
-            </button>
-          </div>
-
-          {error && <div className="mb-5 rounded-lg border border-magenta/20 bg-magenta/10 px-4 py-3 text-sm text-magenta">{error}</div>}
-
-          {loading ? (
-            <div className="grid gap-5 xl:grid-cols-2">{Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-56 animate-pulse rounded-2xl bg-white ring-1 ring-line" />)}</div>
-          ) : filteredMatches.length === 0 ? (
-            <div className="flex min-h-80 flex-col items-center justify-center rounded-lg bg-surface text-center ring-1 ring-line">
-              <Telescope size={34} className="mb-3 text-blue" />
-              <p className="font-bold text-navy">Nothing in focus yet</p>
-              <p className="mt-1 max-w-sm text-sm text-muted">Adjust filters or refresh after completing your JobLens profile.</p>
-            </div>
-          ) : (
-            <div className="grid gap-5 xl:grid-cols-2">{filteredMatches.map((match) => <JobCard key={match.id || match.job_id} match={match} />)}</div>
-          )}
-        </section>
-
-        <aside className="space-y-5">
-          <div className="rounded-lg bg-surface p-5 text-center shadow-sm ring-1 ring-line">
-            <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blueSoft text-2xl font-extrabold text-blue">
-              {(profile?.profession || 'J').slice(0, 1).toUpperCase()}
-            </span>
-            <h2 className="mt-3 font-extrabold text-navy">{profile?.profession || 'JobLens profile'}</h2>
-            <p className="text-sm text-muted">{profile?.experience_level || 'Experience'} applicant</p>
-            <span className="mt-4 inline-flex rounded-md bg-surface2 px-5 py-2 text-xs font-bold text-navy">Notifications on</span>
-          </div>
-          <div className="rounded-lg bg-surface p-5 shadow-sm ring-1 ring-line">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-bold text-navy">Profile Summary</h2>
-              <SlidersHorizontal size={17} className="text-muted" />
-            </div>
-            <div className="space-y-3 text-sm">
-              <p><span className="font-semibold text-navy">Education</span><br /><span className="text-muted">{profile?.education_level || 'Not set'}</span></p>
-              <p><span className="font-semibold text-navy">Experience</span><br /><span className="text-muted">{profile?.experience_level || 'Not set'}</span></p>
-              <p><span className="font-semibold text-navy">Locations</span><br /><span className="text-muted">{(profile?.preferred_locations || []).join(', ') || 'Any'}</span></p>
-            </div>
-          </div>
-          <div className="rounded-lg bg-surface p-5 shadow-sm ring-1 ring-line">
-            <h2 className="mb-4 font-bold text-navy">Work Skill</h2>
-            <div className="flex flex-wrap gap-2">
-              {skills.length ? skills.map((skill) => <span key={skill.id || skill.name} className="rounded-md bg-surface2 px-3 py-1.5 text-xs font-semibold text-muted">{skill.name}</span>) : <span className="text-sm text-muted">Add skills in your profile.</span>}
-            </div>
-          </div>
-        </aside>
+        </main>
       </div>
-    </main>
+    </div>
   );
 };
 

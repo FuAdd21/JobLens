@@ -1,0 +1,516 @@
+/* JobLens Onboarding/Profile -- Stitch "Architectural Minimalist" system.
+   Step 1 markup/values matched exactly from user_onboarding_desktop/code.html.
+   Steps 2-4 extrapolated in the same visual language (no Stitch screen provided
+   for them) to host the app's existing profile fields. */
+
+.page {
+  --primary: #000000;
+  --on-primary: #ffffff;
+  --secondary: #006c49;
+  --secondary-fixed-dim: #4edea3;
+  --surface: #f9f9f9;
+  --surface-lowest: #ffffff;
+  --on-surface: #1a1c1c;
+  --on-surface-variant: #45464d;
+  --outline: #76777d;
+  --outline-variant: #c6c6cd;
+  --surface-container-low: #f3f3f4;
+  --surface-variant: #e2e2e2;
+  --danger-bg: #ffdad6;
+  --danger-text: #93000a;
+
+  --space-base: 4px;
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 40px;
+  --space-xl: 64px;
+  --space-gutter: 24px;
+  --container-max: 1280px;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: 'Inter', sans-serif;
+}
+
+/* ---------- Header ---------- */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 64px;
+  padding: 0 var(--space-gutter);
+  background: var(--surface);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.saveExit {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  transition: color 0.15s ease;
+}
+
+.saveExit:hover {
+  color: var(--primary);
+}
+
+/* ---------- Layout ---------- */
+.main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .main {
+    flex-direction: row;
+  }
+}
+
+.content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-xl) var(--space-gutter);
+}
+
+.contentInner {
+  width: 100%;
+  max-width: 42rem;
+}
+
+/* ---------- Stepper ---------- */
+.stepper {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+}
+
+.step {
+  position: relative;
+  padding-right: 64px;
+}
+
+.step:last-child {
+  padding-right: 0;
+}
+
+.stepLine {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 0;
+  height: 2px;
+  background: var(--outline-variant);
+}
+
+.stepLineDone {
+  background: var(--primary);
+}
+
+.stepCircle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  border: 2px solid var(--outline-variant);
+  background: var(--surface);
+  cursor: default;
+  transition: border-color 0.15s ease;
+}
+
+.stepCircleClickable {
+  cursor: pointer;
+}
+
+.stepCircleDone {
+  border: none;
+  background: var(--primary);
+}
+
+.stepCircleActive {
+  border-color: var(--primary);
+}
+
+.stepCircle .icon {
+  font-size: 16px;
+  color: var(--on-primary);
+}
+
+.stepLabel {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--on-surface-variant);
+}
+
+.stepLabelActive {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* ---------- Form section ---------- */
+.formHead {
+  margin-bottom: var(--space-lg);
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 48px;
+  color: var(--primary);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 28px;
+  color: var(--on-surface-variant);
+}
+
+.errorBox {
+  margin-bottom: var(--space-md);
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.field label {
+  display: block;
+  margin-bottom: var(--space-base);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--primary);
+}
+
+.input,
+.select {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0.125rem;
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-lowest);
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 16px;
+  padding: var(--space-sm) var(--space-sm);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--primary);
+}
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2345464d'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.148l3.71-3.918a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 44px;
+}
+
+.inputIconWrap {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  top: 50%;
+  left: var(--space-sm);
+  transform: translateY(-50%);
+  color: var(--outline);
+  pointer-events: none;
+  font-size: 20px;
+}
+
+.inputIconWrap .input {
+  padding-left: 44px;
+}
+
+/* Chips (skills, employment types, work arrangement) */
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.chip {
+  border-radius: 0.125rem;
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-lowest);
+  color: var(--on-surface-variant);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chipActive {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+.skillChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 0.125rem;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.skillChip button {
+  display: flex;
+  border: none;
+  background: none;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  padding: 0;
+}
+
+.skillChip button:hover {
+  color: var(--danger-text);
+}
+
+.skillInputRow {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.skillInputRow .input {
+  flex: 1;
+}
+
+.addSkillBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  border: none;
+  border-radius: 0.125rem;
+  background: var(--primary);
+  color: var(--on-primary);
+  cursor: pointer;
+}
+
+.helperNote {
+  margin: -8px 0 0;
+  font-size: 12px;
+  color: var(--outline);
+}
+
+/* ---------- Actions ---------- */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-md);
+  margin-top: var(--space-md);
+  border-top: 1px solid var(--outline-variant);
+}
+
+.actionsEnd {
+  justify-content: flex-end;
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  border: none;
+  border-radius: 0.125rem;
+  background: var(--primary);
+  color: var(--on-primary);
+  padding: var(--space-sm) var(--space-lg);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.primaryBtn:hover {
+  opacity: 0.9;
+}
+
+.primaryBtn .icon {
+  font-size: 18px;
+}
+
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  border: 1px solid var(--outline);
+  border-radius: 0.125rem;
+  background: transparent;
+  color: var(--primary);
+  padding: var(--space-sm) var(--space-lg);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.secondaryBtn:hover {
+  background: var(--surface-container-low);
+}
+
+/* ---------- Right sidebar ---------- */
+.sidebar {
+  display: none;
+  width: 320px;
+  flex-shrink: 0;
+  padding: var(--space-gutter);
+  background: var(--surface);
+  border-left: 1px solid var(--outline-variant);
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    display: block;
+  }
+}
+
+.sidebarSticky {
+  position: sticky;
+  top: 96px;
+}
+
+.statusCard {
+  border: 1px solid var(--outline-variant);
+  border-radius: 0.5rem;
+  background: var(--surface-lowest);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.statusHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.statusTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--primary);
+}
+
+.statusPct {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--secondary-fixed-dim);
+  background: rgba(78, 222, 163, 0.12);
+  padding: 4px 8px;
+  border-radius: 0.25rem;
+}
+
+.gaugeWrap {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  margin: 0 auto var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gaugeSvg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.gaugeIcon {
+  position: absolute;
+  font-size: 28px;
+  color: var(--secondary-fixed-dim);
+}
+
+.statusBody {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--on-surface-variant);
+}
+
+.infoCard {
+  border: 1px solid var(--outline-variant);
+  border-radius: 0.5rem;
+  background: var(--surface-lowest);
+  padding: var(--space-md);
+}
+
+.infoTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0 0 var(--space-sm);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.infoTitle .icon {
+  font-size: 18px;
+}
+
+.infoBody {
+  margin: 0;
+  font-size: 14px;
+  color: var(--on-surface-variant);
+}

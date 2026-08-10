@@ -1,0 +1,138 @@
+/* Persistent left navigation for the authenticated app shell.
+   Matches user_dashboard_desktop/code.html exactly. Reusable across
+   Dashboard/Discover/Saved/Applications/Profile/Settings once those pages exist. */
+
+.sidebar {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  width: 256px;
+  height: 100vh;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  background: #f3f3f4;
+  border-right: 1px solid #c6c6cd;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    display: flex;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+  text-decoration: none;
+}
+
+.brandMark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 0.125rem;
+  background: #000000;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.brandName {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #000000;
+}
+
+.brandTag {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: #45464d;
+}
+
+.nav {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 0.25rem;
+  color: #45464d;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: background-color 0.15s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.navItem:hover {
+  background: #e8e8e8;
+}
+
+.navItemActive {
+  background: #6cf8bb;
+  color: #00714d;
+  font-weight: 700;
+}
+
+.navItemActive:hover {
+  background: #6cf8bb;
+}
+
+.navItemDisabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.navItemDisabled:hover {
+  background: transparent;
+}
+
+.soonTag {
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #76777d;
+  border: 1px solid #c6c6cd;
+  border-radius: 0.25rem;
+  padding: 1px 6px;
+}
+
+.navSpacer {
+  margin-top: auto;
+}
+
+.upgradeBtn {
+  width: 100%;
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 0.125rem;
+  border: 1px solid #c6c6cd;
+  background: #e2e2e2;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: default;
+  opacity: 0.7;
+}
